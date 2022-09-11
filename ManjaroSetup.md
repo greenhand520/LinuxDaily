@@ -2287,18 +2287,26 @@ cd nvidia-patch
 sudo ./patch-fbc.sh
 ```
 
-安装 obs-nvfbc
+  安装 obs-nvfbc   
 
 ```shell
-yay -S obs-nvfbc
+yay -S obs-nvfbc       
 ```
 
-需要切换到独显模式才能在 obs 里看到 NvFBCSource，且 CPU 占有率和之前没啥区别，但是看 [LTT 的视频](https://www.bilibili.com/video/BV17U4y1H7w1)，CPU 占有率会低很多。
+   需要切换到独显模式才能在 obs 里看到 NvFBCSource，且 CPU 占有率和之前没啥区别，但是看 [LTT 的视频](https://www.bilibili.com/video/BV17U4y1H7w1)，CPU 占有率会低很多。
+
+键盘输入显示 - screenke
+
+可以将键盘的键入显示在显示屏上，对于视频的制作相当有用。
+
+```shell
+yay -S screenke
+```
 
 #### 录屏 gif - peek
 
 ```shell
-yay -S peek
+yay -S peek 
 ```
 
 #### 视频剪辑 - 达芬奇
@@ -2349,6 +2357,13 @@ yay -S aliyunpan-liupan1890
 
 ```shell
 yay -S nutstore
+```
+
+删除 lightapp ，用 electron 实行的所谓的 lightapp。
+
+```shell
+rm -R ~/.nutstore/apps/lightapp
+rm ~/.local/share/applications/xxxxlightapp.desktop # 具体名字忘了
 ```
 
 #### nautilus 扩展
@@ -2582,6 +2597,16 @@ mkdir ~/.config/caffeine & echo "fcitx5" > ~/.config/caffeine/whitelist.txt
 ```shell
 yay -S dos2unix
 ```
+
+#### 16进制编辑器 - GNOME Hex Editor
+
+```shell
+yay -S ghex
+```
+
+其他类似软件还有 `bless`，`Okteta`，`wxHexEditor`，`Hexedit`
+
+参考：https://zhuanlan.zhihu.com/p/59119723
 
 #### 系统信息 - neofetch
 
@@ -2950,10 +2975,12 @@ sudo virsh net-autostart default
 ### VirtualBox
 
 ```shell
-yay -S virtualbox
+sudo uname -r # 查看内核版本
+5.15.57-2-MANJARO  # 内核版本
+yay -S virtualbox # 安装virtualbox，切记选择相同的内核版本
 ```
 
-需要根据自己Linux内核版本选择
+在 [Index of http://download.virtualbox.org/virtualbox](http://download.virtualbox.org/virtualbox/) 下载拓展包，查看virtualbox版本， 选择expack结尾的。
 
 #### 从实体硬盘启动
 
@@ -3365,3 +3392,10 @@ https://www.gnome-look.org/p/1784844
 ```
 
 以上目录如果没有就自行创建。
+
+## 相关文章
+
+[ArchLinux 安装](https://archlinuxstudio.github.io/) 
+
+[酷安版manjaro教程](https://www.kdocs.cn/l/cjavaV5iPwa0) （含 KDE 美化）
+
