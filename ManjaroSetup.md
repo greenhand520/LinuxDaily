@@ -106,7 +106,7 @@ sudo chroot /mnt/manjaro
 
 ```shell
 grub-install --target=x86_64-efi /dev/nvme0n1p1  #target 默认是x86_64-efi
-grub-grub-mkconfig -o /boot/grub/grub.cfg
+grub-mkconfig -o /boot/grub/grub.cfg
 update-grub
 ```
 
@@ -169,7 +169,7 @@ sudo mount /dev/nvme0n1p1 /boot/efi
 
 ```shell
 sudo grub-install --target=x86_64-efi /dev/nvme0n1p1
-sudo grub-grub-mkconfig -o /boot/grub/grub.cfg
+sudo grub-mkconfig -o /boot/grub/grub.cfg
 sudo update-grub
 ```
 
@@ -212,7 +212,7 @@ mount /dev/sdb2 /
 mount /dev/sdb1 /boot/efi
 
 grub-install --target=x86_64-efi /dev/sdb1
-grub-grub-mkconfig -o /boot/grub/grub.cfg
+grub-mkconfig -o /boot/grub/grub.cfg
 update-grub
 ```
 
@@ -239,383 +239,195 @@ menuentry 'Windows Boot Manager (on /dev/sdc3)' --class windows --class os $menu
 }
 ```
 
+## 初始化
 
+### 包管理
 
-## 设置
-
-### 与Windows时间同步
-
-Windows 与 Linux 看待硬件时间的方式不同。Windows 把电脑的硬件时钟（RTC）看成是本地时间，即 RTC = Local Time，Windows 会直接显示硬件时间；而 Linux 则是把电脑的硬件时钟看成 UTC 时间，即 RTC = UTC，那么 Linux 显示的时间就是硬件时间加上时区。
-
-所以，大概有一个种思路。一是让 Windows 认为硬件时钟是 UTC 时间，二是让 Linux 认为硬件时钟是本地时间。
-
-解决：
-
-1、修改 Windows 硬件时钟为 UTC 时间
-
-以管理员身份打开 「PowerShell」，输入以下命令：
-
-```powershell
-Reg add HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation /v RealTimeIsUniversal /t REG_DWORD /d 1
-```
-
-2、修改 Linux 硬件时钟为本地时间
+pacman 更换源
 
 ```shell
- timedatectl set-local-rtc 1 --adjust-system-clock
- shwclock -w # 将系统时间写入硬件
+sudo pacman-mirrors -i -c China -m rank
+sudo pacman -Syy
 ```
 
-> command not found: hwclock
+安装 yay
 
 ```shell
-sudo pacman -S util-linux
+sudo pacman -S yay
 ```
 
-或者https://blog.csdn.net/qq_36737934/article/details/90233406
-
-### 修改主目录分类文件夹名为英文
-
-方法一
+从 github 克隆出错 `curl 92 HTTP/2 stream 0 was not closed cleanly`
 
 ```shell
-sudo pacman -S xdg-user-dirs-gtk
-export LANG=en_US
-xdg-user-dirs-gtk-update
+git config --global http.version HTTP/1.1
 ```
 
-然后会有个窗口提示语言更改，更新名称即可，此时home下的文件夹名已变为英文。
-接着需要将语言改回中文，执行：
+### 终端
+
+#### 透明终端
+
+会替换原来的。
 
 ```shell
-export LANG=zh_CN.UTF-8
-reboot
+yay -S gnome-terminal-transparency
 ```
 
-重启电脑后如果提示语言更改，选择`保留旧的名称`即可。
-
-旧文件夹中如果有文件就会保存，记得移动文件后删除。
-
-方法二
-
-编辑  `~/.config/user-dirs.dirs`
-
-```bash
-nano ~/.config/user-dirs.dirs 
-```
-
-将文件中相应部分修改为以下内容：
-
-```bash
-XDG_DESKTOP_DIR="$HOME/Desktop"
-XDG_DOWNLOAD_DIR="$HOME/Downloads"
-XDG_TEMPLATES_DIR="$HOME/Templates"
-XDG_PUBLICSHARE_DIR="$HOME/Public"
-XDG_DOCUMENTS_DIR="$HOME/Documents"
-XDG_MUSIC_DIR="$HOME/Music"
-XDG_PICTURES_DIR="$HOME/Pictures"
-XDG_VIDEOS_DIR="$HOME/Videos"
-```
-
-手动修改 home 用户目录下的目录为以上相应目录名。
-
-### NVIDIA显卡驱动安装
-
-Manjaro 自带 `mhwd` 安装驱动很方便。
-
-打开`Manjaro-setting-manager-硬件设定`，点击`Auto Install Proprietary Driver`按钮会自动安装闭源驱动。
-
-或者手动选择安装的驱动。
-
-或者通过命令
+#### 安装  oh-my-zsh
 
 ```shell
-sudo mhwd -a pci nonfree 0300 
+git clone https://github.com/ohmyzsh/ohmyzsh.git ~/.oh-my-zsh 
+cp ~/.zshrc ~/.zshrc.bak
+cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
 ```
 
-自动安装闭源驱动。
-
-### 双显卡切换-OptimusManager 
-
-Optimus Manager Github：https://github.com/Askannz/optimus-manager
-
-Optimus Manager qt Github： https://github.com/Shatur/optimus-manager-qt
-
-参考：https://wiki.archlinux.org/title/Hybrid_graphics
-
-https://wiki.archlinux.org/title/PRIME
-
-https://wiki.archlinux.org/title/NVIDIA_Optimus
-
-```shell
-yay -S gdm-prime # for gnome、gdm，替换原来的gdm
-yay -S optimus-manager
-yay -S optimus-manager-qt # 图形化设置界面
-```
-
-Gnome 默认情况下使用 Wayland，与 Optimus-Manager 兼容性不理想。要强制使用 Xorg，需要编辑文件`/etc/gdm/custom.conf`，然后删除行`＃Waylandenable = false`前的`＃`。
-
-KDE设置参考[这个](https://github.com/Askannz/optimus-manager#important--manjaro-kde-users)。
-
-更多安装注意事项，参阅 [Github Readme Installation](https://github.com/Askannz/optimus-manager#installation) 
-
-**电源配置**
-
-参考：[power-management-options](https://github.com/Askannz/optimus-manager/wiki/A-guide--to-power-management-options) 
-
-电源管理配置的原因，参见[这里](https://github.com/Askannz/optimus-manager/wiki/A-guide--to-power-management-options#a-guide--to-power-management-options-in-optimus-manager)，如果一直插电使用，可以忽略。
-
-```shell
-sudo nano /etc/optimus-manager/optimus-manager.conf 
-```
-
-### 字体补全
-
-#### emoji支持 
-
-```shell
-yay -S noto-color-emoji-fontconfig
-```
-
-已安装的字体可以通过`fc-list`配合`grep`来查找。如果你确定安装了某个字体但是没找到，可以用`fc-cache -f -v`刷新字体缓存。
-
-如：
-
-```shell
-fc-list | grep -i "emoji"
-```
-
-> /usr/share/fonts/noto/NotoColorEmoji.ttf: Noto Color Emoji:style=Regular
-
-#### 微软字体
-
-参考：https://wiki.archlinux.org/title/Microsoft_fonts
-
-```shell
-yay -S ttf-ms-win10-auto
-```
-
-或者提取Windows分区或者镜像中的字体
-
-```shell
-7z e Win10_1709_English_x64.iso sources/install.wim
-7z e install.wim 1/Windows/{Fonts/"*".{ttf,ttc},System32/Licenses/neutral/"*"/"*"/license.rtf} -ofonts/
-7z e install.wim Windows/{Fonts/"*".{ttf,ttc},System32/Licenses/neutral/"*"/"*"/license.rtf} -ofonts/ # Windows 7
-```
-
-然后选择部分字体复制到 `/usr/share/fonts/ms` 中。
-
-```shell
-sudo cp ./fonts/{arialbd.ttf arialbi.ttf ariali.ttf arial.ttf ariblk.ttf \
-courbd.ttf courbi.ttf couri.ttf cour.ttf msjh.ttc msjhbd.ttc msyhbd.ttc \
-msyhsb.ttc msyhsl.ttc msyh.ttc simsun.ttc symbol.ttf tahomabd.ttf tahoma.ttf timesbd.ttf \
-timesbi.ttf timesi.ttf times.ttf wingding.ttf} /usr/share/fonts/ms
-```
-
-更新字体缓存
-
-```shell
-fc-cache -f -v
-```
-
-### 无法查看安卓设备文件
-
-直接在文件管理器中通过MTP查看Android设备文件，需要安装以下插件：
-
-如果文件管理器使用GVFS（GNOME Files, Xfce 的 Thunar），安装 `gvfs-mtp` 提供MTP支持或者是安装 `gvfs-gphoto2` 提供PTP支持。
-
-如果文件管理器使用KIO（KDE 的 Dolphin），安装 `kio-mtp`即可，自带PTP支持。
-
-### 无法添加 Samba
-
-安装 `gvfs-smb`
-
-```shell
-yay -S gvfs-smb
-```
-
-### 直接双击打开 desktop 文件
-
-新建文件 `run-desktop`，给予运行权限并复制到 `/usr/bin` 下，内容如下：
-
-```python
-#!/usr/bin/python
-
-from gi.repository import Gio
-import sys 
-
-def main(myname, desktop, *uris):
-    launcher = Gio.DesktopAppInfo.new_from_filename(desktop)
-    launcher.launch_uris(uris, None)
-
-if __name__ == "__main__":
-    main(*sys.argv)
-```
-
-在 `~/.local/share/applications` 下新建文件 `run-desktop.dektop`，内容如下：
+默认主题是 `robbyrussell`，如果觉得主题太多你可以选择使用随机模式，来由系统随机选择
 
 ```properties
-[Desktop Entry]
-Version=1.0
-Name=run-desktop
-Exec=run-desktop %U
-MimeType=application/x-desktop
-Terminal=false
-Type=Application
-Comment=直接打开desktop文件
-Categories=System;FileTools
-Icon=~/Pictures/icon/smart_launcher.png
+ZSH_THEME="random"
 ```
 
-在 `~/.local/share/applications/mimeapps.list` 中添加如下内容：
+#### 插件
+
+修改 `.zshrc` 配置文件
+将 plugins 修改为如下（将下载的插件名称添加进去）：
 
 ```properties
-[Default Applications]
-# ....
-application/x-desktop=run-desktop.desktop
+plugins=(git zsh-syntax-highlighting zsh-autosuggestions)
 ```
 
-### 插耳机有杂音
-
-安装 `alsa-utils`
+使修改生效
 
 ```shell
-yay -S alsa-utils
+source ~/.zshrc
 ```
 
-控制台输入 `alsamixer`，按`（Fn +）F6`，选择第二个（HDA INTEL PCH），使用左右方向键选择到 `auto mute`，使用上下方向键设置为`disable`，如果和还有杂音，就把 `Loopback Mixing` 也设置为 `disable ` 。按 `ESC` 退出后，最后控制台输入  `sudo alsactl store` 保存。
+1、sudo
 
-### gnome 设置补充
+默认就装好的，需要自己开启。偶尔输入某个命令，提示没有权限，需要加sudo，这个时候按两下 ESC，就会在命令行头部加上 sudo
+
+2、z
+默认就装好的，需要自己开启。`cd` 命令进入 `~/user/github/Youthink` 文件夹，下一次再想进入 `Yourhink` 文件夹的时候,直接 `z youthink` 即可，或者只输入 `youthink` 的一部分 `youth` 都行。还有一个`autojump`的插件和`z`功能差不多，`autojump`需要单独装，如果 z 插件历史记录太多，并且有一些不是自己想要的，可以删除 `z -x` 不要的路径
+
+3、zsh-syntax-highlighting
+
+作用 平常用的ls、cd 等命令输入正确会绿色高亮显示，输入错误会显示其他的颜色。
+
+```
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/plugins/zsh-syntax-highlighting
+```
+
+4、git
+
+默认已开启。可以使用各种 `git` 命令缩写。比如：
+
+```
+git add --all ===> gaa
+git commit -m ===> gcmsg
+```
+
+查看所有 `git` 命令缩写
 
 ```shell
-yay -S system-config-printer gnome-user-share gnome-remote-desktop rygel openssh power-profiles-daemon
+cat ~/.oh-my-zsh/plugins/git/git.plugin.zsh
 ```
 
-`gnome-user-share`：WebDav 协议文件共享
-
-`gnome-remote-desktop`：ms-rd 协议的远程桌面
-
-`rygel`：媒体文件分享
-
-`openssh`：远程登陆
-
-`power-profiles-daemon`：电源模式
-
-### 添加删除软件设置补充
-
-#### 程序图标右击无“显示详情”
+或者筛选对应的命令，如和 `config` 有关的命令
 
 ```shell
-yay -S pamac-gnome-intergration
+alias | grep config
 ```
 
-#### 添加 snap 和 flatpak 支持
+5、zsh-autosuggestions
 
 ```shell
-yay -S libpamac-flatpak-plugin libpamac-snap-plugin
+git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/plugins/zsh-autosuggestions
 ```
 
-安装后在设置中可启用，一般 AUR 的软件够了。
+如果感觉 `→` 补全不方便，还可以自定义补全的快捷键，比如我设置的逗号补全
 
-### 开关机无日志输出
+```
+bindkey ',' autosuggest-accept
+```
+
+在 `.zshrc` 文件添加这句话即可。
+
+6、git-open
+
+在终端里打开当前项目的远程仓库地址，每次改完本地代码，当你想用浏览器访问远程仓库的时候，就很方便。
+
+支持打开的远程仓库
+
+- github.com
+- gist.github.com
+- gitlab.com
+- 自定义域名的 GitLab
+- bitbucket.org
+- Atlassian Bitbucket Server (formerly Atlassian Stash)
+- Visual Studio Team Services
+- Team Foundation Server (on-premises)
 
 ```shell
-sudo nano /etc/default/grub
+git clone https://github.com/paulirish/git-open.git ~/.oh-my-zsh/plugins/git-open
 ```
 
-修改如下：
+7、alias
+
+如名。默认已经安装了，可在 `~/.zshrc` 中添加如下简化操作
+
+```
+alias cp="cp -i"
+alias yi="yay -S"
+alias yr="yay -R"
+alias ys="yay -Ss"
+alias yu="yay -Syu"
+```
+
+#### 更新 oh-my-zsh
+
+修改 自动升级本身没有提示你
 
 ```properties
-# 添加注释
-# GRUB_TIMEOUT_STYLE=hidden
-# GRUB_CMDLINE_LINUX_DEFAULT="quiet resume=UUID=1bad731c-6a6e-4ac0-9f96-7710de9441b7 udev.log_priority=3"
-# 删掉quite
-GRUB_CMDLINE_LINUX_DEFAULT="resume=UUID=1bad731c-6a6e-4ac0-9f96-7710de9441b7 udev.log_priority=3"
+disable_update_prompt=true
 ```
 
-然后
-
-```shell
-sudo update-grub
-```
-
-## 软件
-#APP
-
-### 人脸识别 - Howdy
-
-参考：https://wiki.archlinux.org/title/Howdy
-
-​		    https://github.com/boltgolt/howdy
-
-1、安装
-
-```shell
-yay -S howdy
-```
-
-打开[v4l-utils](https://archlinux.org/packages/?name=v4l-utils)，找到想用作人脸识别的摄像头，记住其文件名，我的是`/dev/video0`。
-
-编辑 `/lib/security/howdy/config.ini` 文件，也可以 root 用户权限使用 `howdy config` 命令来编辑。向下浏览找到
+禁用自动升级, 修改 ~/.zshrc
 
 ```properties
-# The path of the device to capture frames from
-# Should be set automatically by an installer if your distro has one
-device_path = null
+disable_auto_update=true
 ```
 
-将 `device_path =` 后面的内容改为找到的文件路径，例如我的是 `/dev/video0`，那么就是 `device_path = /dev/video0`。修改完成后使用 `Ctrl + X` 保存并退出。
-
-2、改完后运行测试
+手动更新，运行
 
 ```shell
-sudo howdy test
+upgrade_oh_my_zsh
 ```
 
-如果前面没有设置错，这时候就会弹出一个框播放摄像头，可能是黑白色的。
+我的 `.zshrc` 文件部分内容
 
-测试没问题就可以添加人脸了
+```properties
+USE_POWERLINE="true"
 
-```shell
-sudo howdy add
+export ZSH=$HOME/.oh-my-zsh
+
+ZSH_THEME="random"
+
+plugins=(git zsh-syntax-highlighting zsh-autosuggestions z sudo)
+
+source $ZSH/oh-my-zsh.sh
+
+# bindkey ',' autosuggest-accept
+
+alias cp="cp -i"
+alias yi="yay -S"
+alias yr="yay -R"
+alias ys="yay -Ss"
+alias yu="yay -Syu"
+alias ws="whereis"
 ```
-
-中间会让你输入标签，可根据不同的人输入不同的标签。比如张三的人脸输入 ZhangSan 。还可以多添加几个人脸，戴不戴眼睛，远近一点等等。
-
-3、最后再将howdy应用到你想要实现人脸的地方这一步需要修改pam文件：
-
-为 `sudo` 启用 Howdy 验证，修改 `/etc/pam.d/sudo`；
-
-为如 [GDM](https://wiki.archlinux.org/title/GDM) 和 [SDDM](https://wiki.archlinux.org/title/SDDM) 的本地图形登录启用 Howdy 验证，修改 `/etc/pam.d/system-local-login`；
-
-使用的是 [LightDM](https://wiki.archlinux.org/title/LightDM) ，如xfce，修改 `/etc/pam.d/lightdm`
-
-为Gnome图形化界面开启验证，修改 `/etc/pam.d/polkit-1`
-
-4、重启电脑即可。
-
-**注意：**
-
-1、重启后，打开基于chrome的浏览器，可能会提示
-
-> 您登陆计算机时，登陆密钥环未被解锁
-
-根据相关 [issues](https://github.com/boltgolt/howdy/issues/461) 暂时无解，搜索到的使用 `seahorse` 或者删除 `~/.local/share/keyrings` 后设置空密码都会导致edge在登陆和闪退间循环。
-
-2、终端里有 GStreamer warnings
-
-> ```
-> [ WARN:0] global /build/opencv/src/opencv-4.1.1/modules/videoio/src/cap_gstreamer.cpp (1756) handleMessage OpenCV | GStreamer warning: Embedded video playback halted; module source reported: Could not read from resource.
-> [ WARN:0] global /build/opencv/src/opencv-4.1.1/modules/videoio/src/cap_gstreamer.cpp (886) open OpenCV | GStreamer warning: unable to start pipeline
-> [ WARN:0] global /build/opencv/src/opencv-4.1.1/modules/videoio/src/cap_gstreamer.cpp (480) isPipelinePlaying OpenCV | GStreamer warning: GStreamer: pipeline have not been created
-> ...
-> ```
-
-环境变量中添加 `OPENCV_LOG_LEVEL=ERROR` 但是，据wiki说明可能会掩饰一些问题，wiki中提到在[b04ffe5](https://github.com/boltgolt/howdy/commit/b04ffe5bd83683949db53bcaf2b91559e30d8e4c)中提交中解决，但是 `whereis howdy` 后中找到提交中的文件发现与源码并不一样，故备份文件 `/lib/security/howdy/recorders/video_capture.py` 并把源码中的文件拿过来替换，再补上缺失的文件 `/lib/security/howdy/i18n.py`。
 
 ### 输入法 - fcitx5
 
-fcitx5全家桶（fcitx5，fcitx5-qt，fcitx5-gtk，fcitx5-configtool）。
+fcitx5 全家桶（fcitx5，fcitx5-qt，fcitx5-gtk，fcitx5-configtool）。
 
 ```shell
 sudo pacman -S --noconfirm fcitx5-im
@@ -642,6 +454,10 @@ export SDL_IM_MODULE=fcitx
 
 记得将 fcitx5 添加到自启，然后注销或者重启即可。
 
+```shell
+cp /usr/share/applications/org.fcitx.Fcitx5.desktop ~/config/autostart
+```
+
 #### 皮肤
 
 几个觉得不错的黑色主题
@@ -656,7 +472,7 @@ yay -S fcitx5-skin-fluentdark-git
 
 #### 特殊符号及 emoji
 
-```shel
+```shelL
 yay -S gnome-characters
 ```
 
@@ -664,7 +480,7 @@ yay -S gnome-characters
 
 如果需要在 fcitx5 中打出特殊符号，将下面内容导入 fcitx5 的快速输入中即可。根据情况自行删减。快速输入的批量编辑中粘贴或者保存到 csv 文件中导入。
 
-```
+```properties
 0	⓪
 1	①
 2	②
@@ -864,26 +680,668 @@ cxy	₩
 hy	₩
 ```
 
+### clash
+
+```shell
+yay -S clash
+```
+
+**下面设置1～4可跳过。**
+
+#### 1、配置
+
+启动 `clash` 生成默认配置文件 `config.yaml` 和 `Country.mmdb`，保存位置为`~/.config/clash/`
+
+退出 clash 后下载所需的配置文件 `config.yaml` 和 `Country.mmdb`
+
+```shell
+sudo wget -O config.yaml ${你的订阅链接}
+wget -O Country.mmdb https://www.sub-speeder.com/client-download/Country.mmdb
+```
+
+用下载的配置文件 `config.yaml` 和 `Country.mmdb替换默认的配置文件`
+
+修改部分配置如下：
+
+```yaml
+port: 7980
+socks-port: 7981
+allow-lan: true
+```
+
+#### 2、修改系统代理
+
+```shell
+nano ~/.prfile #在最后写入下面内容
+```
+
+```shell
+export http_proxy="http://127.0.0.1:7890" 
+export https_proxy="http://127.0.0.1:7890" 
+export http_proxy="socks5://127.0.0.1:7891" 
+export https_proxy="socks5://127.0.0.1:7891"
+no_proxy="localhost,127.0.0.1,localaddress,.localdomain.com"
+```
+
+然后刷新
+
+```shell
+source ~/.profile
+```
+
+或者在设置中修改。
+
+#### 3、设置外部控制ui
+
+```shell
+git clone https://github.com/Dreamacro/clash-dashboard.git
+cd clash-dashboard
+git checkout -b gh-pages origin/gh-pages
+```
+
+在~/.config/clash/config.yaml中设置好ui地址和访问密码，密码也可以不设置
+
+```yaml
+external-controller: 127.0.0.1:19090
+external-ui: ${clash-dashboard路径}
+```
+
+访问路径为：外部控制地址/ui，填入ip、端口、密码即可访问，密码没设旧留空。
+
+#### 4、设置开机自启动
+
+clash服务
+
+```shell
+sudo nano /etc/systemd/system/clash.service
+```
+
+添加内容如下
+
+```properties
+[Unit]
+Description=Clash daemon
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+User=root
+ExecStart=/usr/bin/clash -d /home/${用户名}/.config/clash
+
+[Install]
+WantedBy=multi-user.target
+```
+
+启用并启动服务
+
+```shell
+sudo systemctl daemon-reload # 重新加载systemctl daemon
+sudo systemctl enable clash
+sudo systemctl start clash
+```
+
+相关命令
+
+```shell
+# 启动Clash
+sudo systemctl start clash
+# 重启Clash
+sudo systemctl restart clash
+# 查看Clash运行状态
+sudo systemctl status clash
+```
+
+然后打开浏览器验证是否能访问谷歌
+
+#### 5、图形界面
+
+**直接安装这个即可**，为了节约内存，可先安装 clash 设置子启，再安装图形界面，不打开图形界面的自启。
+
+```shell
+yay -S clash-for-windows-chinese	
+```
+
+设置如下：
+
+1、主页，打开混合配置，添加配置并在系统设置中修改手动代理的端口**都为9981**
+
+```properties
+mixin: true 
+mixed-port: 9981
+```
+
+2、配置中导入订阅的地址
+
+3、设置中修改系统代理
+
+> Https Proxy: 127.0.0.1 9981
+> Http Proxy: 127.0.0.1 9981
+> Socks Host: 127.0.0.1 9981
+> Ignore Hosts: localhost, 127.0.0.0/8, ::1
+
+4、安装 [Proxy Switche](https://extensions.gnome.org/extension/771/proxy-switcher/)，可在顶栏直接切换代理
+
+### Edge 浏览器
+
+```shell
+yay -S microsoft-edge-dev-bin
+yay -S microsoft-edge-stable-bin
+yay -S microsoft-edge-beat-bin
+```
+
+### nano 文本编辑器
+
+默认好像已经安装了
+
+```shell
+sudo pacman -S nano nano-syntax-highlighting
+```
+
+添加默认显示行号
+
+```shell
+nano ~/.nanorc
+# 添加下面内容
+set linenumbers
+# 备份root用户的配置文件并链接到用户的nano配置文件
+sudo mv /root/.nanorc /root/.nanorc.bak                                                      
+sudo ln -s ~/.nanorc /root/.nanorc
+```
+
+**使用**
+
+**1、光标控制**
+
+移动光标：使用用方向键移动。
+
+选择文字：按住鼠标左键拖到。
+
+**2、复制、剪贴和粘贴**
+
+复制一整行：Alt+6
+
+剪贴一整行：Ctrl+K
+
+粘贴：Ctrl+U
+
+如果需要复制／剪贴多行或者一行中的一部分，先将光标移动到需要复制／剪贴的文本的开头，按 Ctrl+6（或者Alt+A）做标记，然后移动光标到 待复制／剪贴的文本末尾。这时选定的文本会反白，用 Alt+6 来复制，Ctrl+K 来剪贴。若在选择文本过程中要取消，只需要再按一次 Ctrl+6。
+
+**3、搜索**
+
+按 Ctrl+W，然后输入你要搜索的关键字，回车确定。这将会定位到第一个匹配的文本，接着可以用 Alt+W 来定位到下一个匹配的文本。
+
+**4、翻页**
+
+用 Ctrl+Y 到上一页，Ctrl+V 到下一页
+
+**5、退出**
+
+按 Ctrl+X，如果你修改了文件，下面会询问你是否需要保存修改。输入 Y 确认保存，输入 N 不保存，按 Ctrl+C 取消返回。
+
+如果输入了 Y，下一步会让你输入想要保存的文件名。如果不需要修改文件名直接回车就行；若想要保存成别的名字（也就是另存为）则输入新名称然后确 定。这个时候也可用 Ctrl+C 来取消返回。
+
+### gnome
+
+#### gnome 扩展
+
+通过浏览器安装 Gnome Shell 扩展需要在火狐浏览器中安装 [GNOME Shell integration](https://addons.mozilla.org/en-US/firefox/addon/gnome-shell-integration/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search) 扩展
+
+扩展推荐：
+
+[ArcMenu](https://extensions.gnome.org/extension/3628/arcmenu/) 程序菜单
+
+[AppIndicator and KStatusNotifierItem Support](https://extensions.gnome.org/extension/615/appindicator-support/) 应用托盘图标显示在顶栏
+
+[Blur my Shell](https://extensions.gnome.org/extension/3193/blur-my-shell/) 界面模糊
+
+[Custom Hot Corners - Extended](https://extensions.gnome.org/extension/4167/custom-hot-corners-extended/) 屏幕四角鼠标手势控制
+
+[Dash to Dock](https://extensions.gnome.org/extension/307/dash-to-dock/) Dock
+
+[ddterm](https://extensions.gnome.org/extension/3780/ddterm/) 下拉式终端，建议绑定快捷键
+
+[Desktop Icons NG (DING)](https://extensions.gnome.org/extension/2087/desktop-icons-ng-ding/) 桌面右击菜单添加更过选项，可在桌面添加快捷方式
+
+[GSConnect](https://extensions.gnome.org/extension/1319/gsconnect/) KDEConnect 在 gnome shell 上的实现，与 gnome 结合的非常好
+
+[Lock Keys](https://extensions.gnome.org/extension/36/lock-keys/) 大小写及数字健启用提示
+
+[lunar-calendar](https://extensions.gnome.org/extension/675/lunar-calendar/) 农历支持，需要先安装 `lunar-date` ，设置系统语言为英文后乱码，解决
+
+```shell
+cp /usr/share/locale/zh_CN/LC_MESSAGES/lunar-date.mo /usr/share/locale/en_US/LC_MESSAGES/lunar-date.mo
+```
+
+注销后恢复
+
+[NoAnnoyance v2](https://extensions.gnome.org/extension/2182/noannoyance/) 阻止“窗口已就绪”提示，直接聚焦到将相应窗口
+
+[Proxy Switche](https://extensions.gnome.org/extension/771/proxy-switcher/) 顶栏直接切换代理
+
+[Sound Input & Output Device Chooser](https://extensions.gnome.org/extension/906/sound-output-device-chooser/) 见名知义
+
+[Unite](https://extensions.gnome.org/extension/1287/unite/) 对窗口顶部面板进行了一些布局调整，并删除了窗口装饰，我用来去除JB-IDE的顶栏的，但是最大最小化按钮会被移动到顶栏，所以我配合`Custom Hot Corners - Extended`用鼠标手势来实现最大最小化。
+
+[Vitals](https://extensions.gnome.org/extension/1460/vitals/) 网速 CPU RAM 硬盘等使用指示
+
+#### gnome 配置
+
+dconf && gsettings
+
+dconf：是一套基于键的配置系统, 十分高效, 相当于 Windows 下的注册表，图形化编辑工具 `dconf-editor`
+
+gsettings：是 GNOME-DE 下的高级 API, 是命令行工具/前端, 用来简化对 dconf 的操作
+
+gnome 的软件基本都可以用 gsettings 进行配置。
+
+比如下面的触摸板配置
+
+```shell
+gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
+gsettings set org.gnome.desktop.peripherals.touchpad speed 0.57
+gsettings set org.gnome.desktop.peripherals.touchpad disable-while-typing false
+```
+
+分别对应:
+
+- 轻击模拟鼠标点击, 默认为false
+- 调整触摸板速度, 默认为0
+- 打字时禁用触摸板, 默认为true
+
+#### 保存加载配置
+
+导出当前的 dconf 数据到某个文件:
+
+```bash
+dconf dump / > dconf.settings
+```
+
+加载/导入某个  dconf 文件到当前系统:
+
+```bash
+cat dconf.settings | dconf load -f /
+```
+
+背景图像默认位置是 `/home/mdmbct/.config/background` 可以预先复制一个名为 background 不带扩展名的图片文件过去
+
+## 设置
+
+### 与Windows时间同步
+
+Windows 与 Linux 看待硬件时间的方式不同。Windows 把电脑的硬件时钟（RTC）看成是本地时间，即 RTC = Local Time，Windows 会直接显示硬件时间；而 Linux 则是把电脑的硬件时钟看成 UTC 时间，即 RTC = UTC，那么 Linux 显示的时间就是硬件时间加上时区。
+
+所以，大概有一个种思路。一是让 Windows 认为硬件时钟是 UTC 时间，二是让 Linux 认为硬件时钟是本地时间。
+
+解决：
+
+1、修改 Windows 硬件时钟为 UTC 时间
+
+以管理员身份打开 「PowerShell」，输入以下命令：
+
+```powershell
+Reg add HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation /v RealTimeIsUniversal /t REG_DWORD /d 1
+```
+
+2、修改 Linux 硬件时钟为本地时间
+
+```shell
+ timedatectl set-local-rtc 1 --adjust-system-clock
+ shwclock -w # 将系统时间写入硬件
+```
+
+> command not found: hwclock
+
+```shell
+sudo pacman -S util-linux
+```
+
+或者https://blog.csdn.net/qq_36737934/article/details/90233406
+
+### 修改主目录分类文件夹名为英文
+
+方法一
+
+```shell
+sudo pacman -S xdg-user-dirs-gtk
+export LANG=en_US
+xdg-user-dirs-gtk-update
+```
+
+然后会有个窗口提示语言更改，更新名称即可，此时home下的文件夹名已变为英文。
+接着需要将语言改回中文，执行：
+
+```shell
+export LANG=zh_CN.UTF-8
+reboot
+```
+
+重启电脑后如果提示语言更改，选择`保留旧的名称`即可。
+
+旧文件夹中如果有文件就会保存，记得移动文件后删除。
+
+方法二
+
+编辑  `~/.config/user-dirs.dirs`
+
+```bash
+nano ~/.config/user-dirs.dirs 
+```
+
+将文件中相应部分修改为以下内容：
+
+```bash
+XDG_DESKTOP_DIR="$HOME/Desktop"
+XDG_DOWNLOAD_DIR="$HOME/Downloads"
+XDG_TEMPLATES_DIR="$HOME/Templates"
+XDG_PUBLICSHARE_DIR="$HOME/Public"
+XDG_DOCUMENTS_DIR="$HOME/Documents"
+XDG_MUSIC_DIR="$HOME/Music"
+XDG_PICTURES_DIR="$HOME/Pictures"
+XDG_VIDEOS_DIR="$HOME/Videos"
+```
+
+手动修改 home 用户目录下的目录为以上相应目录名。
+
+**方法三**
+
+系统设置 - 区域和语言 - 语言 - 选择英语，注销即可。
+
+### NVIDIA显卡驱动安装
+
+Manjaro 自带 `mhwd` 安装驱动很方便。
+
+打开`Manjaro-setting-manager-硬件设定`，点击`Auto Install Proprietary Driver`按钮会自动安装闭源驱动。
+
+或者手动选择安装的驱动。
+
+或者通过命令
+
+```shell
+sudo mhwd -a pci nonfree 0300 
+```
+
+自动安装闭源驱动。
+
+### 双显卡切换-OptimusManager 
+
+Optimus Manager Github：https://github.com/Askannz/optimus-manager
+
+Optimus Manager qt Github： https://github.com/Shatur/optimus-manager-qt
+
+参考：https://wiki.archlinux.org/title/Hybrid_graphics
+
+https://wiki.archlinux.org/title/PRIME
+
+https://wiki.archlinux.org/title/NVIDIA_Optimus
+
+```shell
+yay -S gdm-prime # for gnome、gdm，替换原来的gdm
+yay -S optimus-manager
+yay -S optimus-manager-qt # 图形化设置界面
+```
+
+Gnome 默认情况下使用 Wayland，与 Optimus-Manager 兼容性不理想。要强制使用 Xorg，需要编辑文件`/etc/gdm/custom.conf`，然后删除行`＃Waylandenable = false`前的`＃`。
+
+KDE设置参考[这个](https://github.com/Askannz/optimus-manager#important--manjaro-kde-users)。
+
+更多安装注意事项，参阅 [Github Readme Installation](https://github.com/Askannz/optimus-manager#installation) 
+
+**电源配置**
+
+参考：[power-management-options](https://github.com/Askannz/optimus-manager/wiki/A-guide--to-power-management-options) 
+
+电源管理配置的原因，参见[这里](https://github.com/Askannz/optimus-manager/wiki/A-guide--to-power-management-options#a-guide--to-power-management-options-in-optimus-manager)，如果一直插电使用，可以忽略。
+
+```shell
+sudo nano /etc/optimus-manager/optimus-manager.conf 
+```
+
+### 字体补全
+
+#### emoji支持 
+
+```shell
+yay -S noto-color-emoji-fontconfig
+```
+
+已安装的字体可以通过`fc-list`配合`grep`来查找。如果你确定安装了某个字体但是没找到，可以用`fc-cache -f -v`刷新字体缓存。
+
+如：
+
+```shell
+fc-list | grep -i "emoji"
+```
+
+> /usr/share/fonts/noto/NotoColorEmoji.ttf: Noto Color Emoji:style=Regular
+
+#### 微软字体
+
+参考：https://wiki.archlinux.org/title/Microsoft_fonts
+
+```shell
+yay -S ttf-ms-win10-auto
+```
+
+或者提取Windows分区或者镜像中的字体
+
+```shell
+7z e Win10_1709_English_x64.iso sources/install.wim
+7z e install.wim 1/Windows/{Fonts/"*".{ttf,ttc},System32/Licenses/neutral/"*"/"*"/license.rtf} -ofonts/
+7z e install.wim Windows/{Fonts/"*".{ttf,ttc},System32/Licenses/neutral/"*"/"*"/license.rtf} -ofonts/ # Windows 7
+```
+
+然后选择部分字体复制到 `/usr/share/fonts/ms` 中。
+
+```shell
+sudo cp ./fonts/{arialbd.ttf arialbi.ttf ariali.ttf arial.ttf ariblk.ttf \
+courbd.ttf courbi.ttf couri.ttf cour.ttf msjh.ttc msjhbd.ttc msyhbd.ttc \
+msyhsb.ttc msyhsl.ttc msyh.ttc simsun.ttc symbol.ttf tahomabd.ttf tahoma.ttf timesbd.ttf \
+timesbi.ttf timesi.ttf times.ttf wingding.ttf} /usr/share/fonts/ms
+```
+
+更新字体缓存
+
+```shell
+fc-cache -f -v
+```
+
+### 无法查看安卓设备文件
+
+直接在文件管理器中通过MTP查看Android设备文件，需要安装以下插件：
+
+如果文件管理器使用GVFS（GNOME Files, Xfce 的 Thunar），安装 `gvfs-mtp` 提供MTP支持或者是安装 `gvfs-gphoto2` 提供PTP支持。
+
+如果文件管理器使用KIO（KDE 的 Dolphin），安装 `kio-mtp`即可，自带PTP支持。
+
+### 无法添加 Samba
+
+安装 `gvfs-smb`
+
+```shell
+yay -S gvfs-smb
+```
+
+### 直接双击打开 desktop 文件
+
+新建文件 `/usr/bin/run-desktop` 并给予运行权限，内容如下：
+
+```python
+#!/usr/bin/python
+
+from gi.repository import Gio
+import sys 
+
+def main(myname, desktop, *uris):
+    launcher = Gio.DesktopAppInfo.new_from_filename(desktop)
+    launcher.launch_uris(uris, None)
+
+if __name__ == "__main__":
+    main(*sys.argv)
+```
+
+新建文件 `~/.local/share/applications/run-desktop.dektop`，内容如下：
+
+```properties
+[Desktop Entry]
+Version=1.0
+Name=run-desktop
+Exec=run-desktop %U
+MimeType=application/x-desktop
+Terminal=false
+Type=Application
+Comment=直接打开desktop文件
+Categories=System;FileTools
+Icon=~/Pictures/icon/smart_launcher.png
+```
+
+在 `~/.local/share/applications/mimeapps.list` 中添加如下内容：
+
+```properties
+[Default Applications]
+# ....
+application/x-desktop=run-desktop.desktop
+```
+
+### 插耳机有杂音
+
+安装 `alsa-utils`
+
+```shell
+yay -S alsa-utils
+```
+
+控制台输入 `alsamixer`，按`（Fn +）F6`，选择第二个（HDA INTEL PCH），使用左右方向键选择到 `auto mute`，使用上下方向键设置为`disable`，如果和还有杂音，就把 `Loopback Mixing` 也设置为 `disable ` 。按 `ESC` 退出后，最后控制台输入  `sudo alsactl store` 保存。
+
+### gnome 设置补充
+
+```shell
+yay -S system-config-printer gnome-user-share gnome-remote-desktop rygel openssh power-profiles-daemon
+```
+
+`gnome-user-share`：WebDav 协议文件共享
+
+`gnome-remote-desktop`：ms-rd 协议的远程桌面
+
+`rygel`：媒体文件分享
+
+`openssh`：远程登陆
+
+`power-profiles-daemon`：电源模式
+
+### 添加删除软件设置补充
+
+#### 程序图标右击无“显示详情”
+
+```shell
+yay -S pamac-gnome-intergration
+```
+
+#### 添加 snap 和 flatpak 支持
+
+```shell
+yay -S libpamac-flatpak-plugin libpamac-snap-plugin
+```
+
+安装后在设置中可启用，一般 AUR 的软件够了。
+
+### 开关机无日志输出
+
+```shell
+sudo nano /etc/default/grub
+```
+
+修改如下：
+
+```properties
+# 添加注释
+# GRUB_TIMEOUT_STYLE=hidden
+# GRUB_CMDLINE_LINUX_DEFAULT="quiet resume=UUID=1bad731c-6a6e-4ac0-9f96-7710de9441b7 udev.log_priority=3"
+# 删掉quite
+GRUB_CMDLINE_LINUX_DEFAULT="resume=UUID=1bad731c-6a6e-4ac0-9f96-7710de9441b7 udev.log_priority=3"
+```
+
+然后
+
+```shell
+sudo update-grub
+```
+
+## 软件
+#APP
+
+### 人脸识别 - Howdy
+
+参考：https://wiki.archlinux.org/title/Howdy
+
+​		    https://github.com/boltgolt/howdy
+
+1、安装
+
+```shell
+yay -S howdy
+```
+
+打开 [v4l-utils](https://archlinux.org/packages/?name=v4l-utils)，找到想用作人脸识别的摄像头，记住其文件名，我的是`/dev/video0`。
+
+编辑 `/lib/security/howdy/config.ini` 文件，也可以 root 用户权限使用 `howdy config` 命令来编辑。向下浏览找到
+
+```properties
+# The path of the device to capture frames from
+# Should be set automatically by an installer if your distro has one
+device_path = null
+```
+
+将 `device_path =` 后面的内容改为找到的文件路径，例如我的是 `/dev/video0`，那么就是 `device_path = /dev/video0`。修改完成后使用 `Ctrl + X` 保存并退出。
+
+2、改完后运行测试
+
+```shell
+sudo howdy test
+```
+
+如果前面没有设置错，这时候就会弹出一个框播放摄像头，可能是黑白色的。
+
+测试没问题就可以添加人脸了
+
+```shell
+sudo howdy add
+```
+
+中间会让你输入标签，可根据不同的人输入不同的标签。比如张三的人脸输入 ZhangSan 。还可以多添加几个人脸，戴不戴眼睛，远近一点等等。
+
+3、最后再将howdy应用到你想要实现人脸的地方这一步需要修改pam文件：
+
+为 `sudo` 启用 Howdy 验证，修改 `/etc/pam.d/sudo`；
+
+为如 [GDM](https://wiki.archlinux.org/title/GDM) 和 [SDDM](https://wiki.archlinux.org/title/SDDM) 的本地图形登录启用 Howdy 验证，修改 `/etc/pam.d/system-local-login`；
+
+使用的是 [LightDM](https://wiki.archlinux.org/title/LightDM) ，如xfce，修改 `/etc/pam.d/lightdm`
+
+为 Gnome 图形化界面开启验证，修改 `/etc/pam.d/polkit-1`
+
+4、重启电脑即可。
+
+**注意：**
+
+1、重启后，打开基于 chrome 的浏览器，可能会提示
+
+> 您登陆计算机时，登陆密钥环未被解锁
+
+根据相关 [issues](https://github.com/boltgolt/howdy/issues/461) 暂时无解，搜索到的使用 `seahorse` 或者删除 `~/.local/share/keyrings` 后设置空密码都会导致edge在登陆和闪退间循环。
+
+2、终端里有 GStreamer warnings
+
+> ```
+> [ WARN:0] global /build/opencv/src/opencv-4.1.1/modules/videoio/src/cap_gstreamer.cpp (1756) handleMessage OpenCV | GStreamer warning: Embedded video playback halted; module source reported: Could not read from resource.
+> [ WARN:0] global /build/opencv/src/opencv-4.1.1/modules/videoio/src/cap_gstreamer.cpp (886) open OpenCV | GStreamer warning: unable to start pipeline
+> [ WARN:0] global /build/opencv/src/opencv-4.1.1/modules/videoio/src/cap_gstreamer.cpp (480) isPipelinePlaying OpenCV | GStreamer warning: GStreamer: pipeline have not been created
+> ...
+> ```
+
+环境变量中添加 `OPENCV_LOG_LEVEL=ERROR` 但是，据wiki说明可能会掩饰一些问题，wiki中提到在[b04ffe5](https://github.com/boltgolt/howdy/commit/b04ffe5bd83683949db53bcaf2b91559e30d8e4c)中提交中解决，但是 `whereis howdy` 后中找到提交中的文件发现与源码并不一样，故备份文件 `/lib/security/howdy/recorders/video_capture.py` 并把源码中的文件拿过来替换，再补上缺失的文件 `/lib/security/howdy/i18n.py`。
+
 ### 包管理
-
-#### 包管理 - yay
-
-```shell
-sudo pacman -S yay
-```
-
-从github克隆出错 `curl 92 HTTP/2 stream 0 was not closed cleanly`
-
-```shell
-git config --global http.version HTTP/1.1
-```
-
-pacman更换源
-
-```shell
-sudo pacman-mirrors -i -c China -m rank
-sudo pacman -Syy
-```
 
 #### deb包安装 - debtap
 
@@ -913,7 +1371,7 @@ sudo pacman -U ${新包路径}
 
 不过为啥不看看AUR里有没有呢？👀
 
-### 主题安装 - ocs url
+#### 主题安装 - ocs url
 
 用于浏览器直接安装主题
 
@@ -989,66 +1447,15 @@ gsettings set org.gnome.gedit.preferences.editor auto-save-interval 1
 gsettings list-keys org.gnome.gedit.preferences.editor
 ```
 
-#### nano
-
-默认好像已经安装了
-
-```shell
-sudo pacman -S nano nano-syntax-highlighting
-```
-
-添加默认显示行号
-
-```shell
-nano ~/.nanorc
-# 添加下面内容
-set linenumbers
-# 备份root用户的配置文件并链接到用户的nano配置文件
-sudo mv /root/.nanorc /root/.nanorc.bak                                                      
-sudo ln -s /home/${用户名}/.nanorc /root/.nanorc
-```
-
-**使用**
-
-**1、光标控制**
-
-移动光标：使用用方向键移动。
-
-选择文字：按住鼠标左键拖到。
-
-**2、复制、剪贴和粘贴**
-
-复制一整行：Alt+6
-
-剪贴一整行：Ctrl+K
-
-粘贴：Ctrl+U
-
-如果需要复制／剪贴多行或者一行中的一部分，先将光标移动到需要复制／剪贴的文本的开头，按 Ctrl+6（或者Alt+A）做标记，然后移动光标到 待复制／剪贴的文本末尾。这时选定的文本会反白，用 Alt+6 来复制，Ctrl+K 来剪贴。若在选择文本过程中要取消，只需要再按一次 Ctrl+6。
-
-**3、搜索**
-
-按 Ctrl+W，然后输入你要搜索的关键字，回车确定。这将会定位到第一个匹配的文本，接着可以用 Alt+W 来定位到下一个匹配的文本。
-
-**4、翻页**
-
-用 Ctrl+Y 到上一页，Ctrl+V 到下一页
-
-**5、退出**
-
-按 Ctrl+X，如果你修改了文件，下面会询问你是否需要保存修改。输入 Y 确认保存，输入 N 不保存，按 Ctrl+C 取消返回。
-
-如果输入了 Y，下一步会让你输入想要保存的文件名。如果不需要修改文件名直接回车就行；若想要保存成别的名字（也就是另存为）则输入新名称然后确 定。这个时候也可用 Ctrl+C 来取消返回。
-
-#### 超大文本编辑 - WindEdit
-
-去 [Github Releases](https://github.com/kingToolbox/WindEdit/releases) 直接下载最新版，运行文件夹中的 WindEdit 文件即可。
-
 #### notepadqq
 
 ```shell
 yay -S notepadqq
 ```
+
+#### 超大文本编辑 - WindEdit
+
+去 [Github Releases](https://github.com/kingToolbox/WindEdit/releases) 直接下载最新版，运行文件夹中的 WindEdit 文件即可。
 
 #### Api测试 - ApiPost
 
@@ -1077,6 +1484,12 @@ StartupWMClass=ApiPost
 yay -S apipost-bin
 ```
 
+同样功能的 postman 
+
+```shell
+yay -S postman-bin
+```
+
 #### 远程连接 - WindTerm
 
 QT 开发的、性能高、占用低、集成 sftp，更多查看 [Github](https://github.com/kingToolbox/WindTerm)
@@ -1096,232 +1509,6 @@ yay -S windterm-bin
 ```shell
 yay -S xunlei-bin
 ```
-
-#### clash
-
-```shell
-yay -S clash
-```
-
-**下面设置1～5可跳过。**
-
-##### 1、配置
-
-启动 `clash` 生成默认配置文件 `config.yaml` 和 `Country.mmdb`，保存位置为`/home/{用户名}/.config/clash/`
-
-退出clash后下载所需的配置文件 `config.yaml` 和 `Country.mmdb`
-
-```shell
-sudo wget -O config.yaml ${你的订阅链接}
-wget -O Country.mmdb https://www.sub-speeder.com/client-download/Country.mmdb
-```
-
-用下载的配置文件 `config.yaml` 和 `Country.mmdb替换默认的配置文件`
-
-修改部分配置如下：
-
-```yaml
-port: 7980
-socks-port: 7981
-allow-lan: true
-```
-
-##### 2、修改系统代理
-
-```shell
-nano ~/.prfile #在最后写入下面内容
-```
-
-```shell
-export http_proxy="http://127.0.0.1:7890" 
-export https_proxy="http://127.0.0.1:7890" 
-export http_proxy="socks5://127.0.0.1:7891" 
-export https_proxy="socks5://127.0.0.1:7891"
-no_proxy="localhost,127.0.0.1,localaddress,.localdomain.com"
-```
-
-然后刷新
-
-```shell
-source ~/.profile
-```
-
-或者在设置中修改。
-
-##### 3、设置外部控制ui
-
-```shell
-git clone https://github.com/Dreamacro/clash-dashboard.git
-cd clash-dashboard
-git checkout -b gh-pages origin/gh-pages
-```
-
-在~/.config/clash/config.yaml中设置好ui地址和访问密码，密码也可以不设置
-
-```yaml
-external-controller: 127.0.0.1:19090
-external-ui: ${clash-dashboard路径}
-```
-
-访问路径为：外部控制地址/ui，填入ip、端口、密码即可访问，密码没设旧留空。
-
-##### 4、设置开机自启动
-
-clash服务
-
-```shell
-sudo nano /etc/systemd/system/clash.service
-```
-
-添加内容如下
-
-```properties
-[Unit]
-Description=Clash daemon
-After=network.target
-
-[Service]
-Type=simple
-Restart=always
-User=root
-ExecStart=/usr/bin/clash -d /home/${用户名}/.config/clash
-
-[Install]
-WantedBy=multi-user.target
-```
-
-启用并启动服务
-
-```shell
-sudo systemctl daemon-reload # 重新加载systemctl daemon
-sudo systemctl enable clash
-sudo systemctl start clash
-```
-
-相关命令
-
-```shell
-# 启动Clash
-sudo systemctl start clash
-# 重启Clash
-sudo systemctl restart clash
-# 查看Clash运行状态
-sudo systemctl status clash
-```
-
-然后打开浏览器验证是否能访问谷歌
-
-##### 5、开机自动更新订阅(不建议)
-
-服务文件更新如下
-
-```properties
-[Unit]
-Description=clash daemon
-After=network.target
-
-[Service]
-Type=simple
-User=root
-#ExecStart=/usr/local/bin/clash -d /root/.config/clash/
-#Restart=on-failure
-ExecStart=/home/${用户名}/.config/clash/start-clash.sh
-ExecStop=/home/${用户名}/.config/clash/stop-clash.sh
-Environment="CONFIG_PATH=/home/${用户名}/.config/clash"
-Environment="CLASH_URL={你的订阅链接}"
-
-[Install]
-WantedBy=multi-user.target
-```
-
-其中`start-clash.sh`如下：
-
-```bash
-#!/bin/bash
-
-# CONFIG_PATH="/home/${用户名}/.config/clash"
-
-# save pid file
-echo $$ > ${CONFIG_PATH}/clash.pid
-
-diff ${CONFIG_PATH}/config.yaml <(curl -s ${CLASH_URL})
-if [ "$?" == 0 ]
-then
-    /usr/bin/clash -d ${CONFIG_PATH}/
-else
-    curl -L -o ${CONFIG_PATH}/config.yaml ${CLASH_URL}
-    /usr/bin/clash -d ${CONFIG_PATH}/
-fi
-url -L -o ${CONFIG_PATH}/config.yaml ${CLASH_URL}
-    /usr/bin/clash -d ${CONFIG_PATH}/
-fi
-```
-
-其中`stop-clash.sh`如下：
-
-```bash
-#!/bin/bash
-
-# CONFIG_PATH="/home/${用户名}/.config/clash"
-
-# read pid file
-PID=`cat ${CONFIG_PATH}/clash.pid`
-kill -9 ${PID}
-killall clash
-rm ${CONFIG_PATH}/clash.pid
-```
-
-然后重启服务查看状态
-
-```shell
-sudo systemctl daemon-reload
-sudo systemctl restart clash
-sudo systemctl status clash
-```
-
-**注意**
-
-每次获取文件都会覆盖原来的配置，所以设置的ui和端口都会失效。
-
-##### 6、图形界面
-
-**直接安装这个即可**
-
-```shell
-yay -S clash-for-windows-chinese	
-```
-
-设置如下：
-
-1、主页，打开混合配置，添加配置并在系统设置中修改手动代理的端口**都为9981**
-
-```properties
-mixin: true 
-mixed-port: 9981
-```
-
-2、配置中导入订阅的地址
-
-3、设置中修改系统代理
-
-> Https Proxy: 127.0.0.1 9981
-> Http Proxy: 127.0.0.1 9981
-> Socks Host: 127.0.0.1 9981
-> Ignore Hosts: localhost, 127.0.0.0/8, ::1
-
-4、安装 [Proxy Switche](https://extensions.gnome.org/extension/771/proxy-switcher/)，可在顶栏直接切换代理
-
-#### edge
-
-```shell
-yay -S microsoft-edge-dev-bin
-yay -S microsoft-edge-stable-bin
-yay -S microsoft-edge-beat-bin
-```
-
-**注：**
-
-通过浏览器安装GnomeShell扩展需要安装`GNOME Shell integration`浏览器扩展
 
 #### qbittorrent 增强版
 
@@ -1576,7 +1763,7 @@ Chrome：[Aria2 for Chrome](https://chrome.google.com/webstore/detail/aria2-for-
 
 火狐：[Aria2 下载器集成组件](https://addons.mozilla.org/zh-CN/firefox/addon/aria2-integration/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search)
 
-#### Samba共享
+#### Samba 共享
 
 ```shell
 sudo pacman -S samba nautilus-share manjaro-settings-samba
@@ -1586,7 +1773,7 @@ reboot
 修改配置文件
 
 ```shell
-suudo cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
+sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
 ```
 
 修改内容如下，内容中的注释需删除
@@ -1844,12 +2031,12 @@ yay -S gimp
 国内多平台音乐播放，体验不是很好，每次启动都是播放歌单第一首歌，经常出现歌曲无法播放的情况
 
 ```shell
-yay -S listen1-desktop-appimage
+yay -S patch listen1-desktop-appimage
 ```
 
 #### spotify-adblock
 
-spotify去广告版，免费、曲库全，可以和手机联动，强烈推荐，国内的音乐平台是什么垃圾😅
+spotify去广告版，免费、曲库全，可以和手机联动
 
 ```shell
 yay -S spotify-adblock
@@ -2072,7 +2259,7 @@ yay -S obs-nvfbc
 
 需要切换到独显模式才能在 obs 里看到 NvFBCSource，且 CPU 占有率和之前没啥区别，但是看 [LTT 的视频](https://www.bilibili.com/video/BV17U4y1H7w1)，CPU 占有率会低很多。
 
-#### 录屏gif - peek
+#### 录屏 gif - peek
 
 ```shell
 yay -S peek
@@ -2346,7 +2533,11 @@ yay -S caffeine-ng
 
 和`caffeine gnome-shell`扩展功能一致，不过可以用的时候再打开，就不用一直在顶栏显示了。
 
-建议在软件设置中设置自动激活，这样打开就不用再点击激活了。
+建议在软件设置中设置自动激活，这样打开就不用再点击激活了，下面设置启动发现有 fcitx5 进程，就自动激活。
+
+```shell
+mkdir ~/.config/caffeine & echo "fcitx5" > ~/.config/caffeine/whitelist.txt
+```
 
 #### dos2unix
 
@@ -2419,10 +2610,55 @@ tlp-stat -s
 > Mode           = AC
 > Power source   = AC
 
+#### 命令帮助 - tldr
+
+```shell
+yay -S tldr
+```
+
+使用
+
+```shell
+tldr cp                                                                                                             
+  cp
+
+  Copy files and directories.
+  More information: https://www.gnu.org/software/coreutils/cp.
+
+  - Copy a file to another location:
+    cp path/to/source_file.ext path/to/target_file.ext
+
+  - Copy a file into another directory, keeping the filename:
+    cp path/to/source_file.ext path/to/target_parent_directory
+
+  - Recursively copy a directory's contents to another location (if the destination exists, the directory is copied inside it):
+    cp -r path/to/source_directory path/to/target_directory
+    
+```
+
 #### uTools
 
 ```shell
 yay -S utools
+```
+
+插件推荐
+
+```
+超级剪贴板 > ALT+V
+书签与历史记录 
+易翻翻译 > ALT+T 
+JSON编辑器 
+解散文件夹 
+Ctool 
+网页快开 > 必应（ALT+B）谷歌（ALT+G）
+关闭进程
+讯飞ocr > ALT+R
+备忘快贴
+maven&gradle
+计算稿纸
+编码小助手
+程序员手册
 ```
 
 类似utools的一个软件 [ulauncher](https://ulauncher.io/)
@@ -2449,6 +2685,8 @@ yay -S remmina freerdp libvncserver spice-gtk
 
 ```shell
 sudo pacman -U todesk_4.1.0_x86_64.pkg.tar.zst
+# 或者
+yay -S todesk
 ```
 
 如打开无法显示中文，安装字体`noto-fonts-cjk` 
@@ -2491,252 +2729,6 @@ yay -S steam-manjaro
 ```shell
  mv ~/.local/share/Steam{,.old}
 ```
-
-### 终端
-
-#### 透明终端
-
-会替换原来的。
-
-```shell
-yay -S gnome-terminal-transparency
-```
-
-#### 安装oh-my-zsh
-
-```shell
-git clone https://github.com/ohmyzsh/ohmyzsh.git ~/.oh-my-zsh 
-cp ~/.zshrc ~/.zshrc.bak
-cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
-```
-
-默认主题是 `robbyrussell`，如果觉得主题太多你可以选择使用随机模式，来由系统随机选择
-
-```properties
-ZSH_THEME="random"
-```
-
-#### 插件
-
-修改 `.zshrc` 配置文件
-将 plugins 修改为如下（将下载的插件名称添加进去）：
-
-```properties
-plugins=(git zsh-syntax-highlighting zsh-autosuggestions)
-```
-
-使修改生效
-
-```shell
-source ~/.zshrc
-```
-
-1、sudo
-
-默认就装好的，需要自己开启。偶尔输入某个命令，提示没有权限，需要加sudo，这个时候按两下 ESC，就会在命令行头部加上 sudo
-
-2、z
-默认就装好的，需要自己开启。`cd` 命令进入 `~/user/github/Youthink` 文件夹，下一次再想进入 `Yourhink` 文件夹的时候,直接 `z youthink` 即可，或者只输入 `youthink` 的一部分 `youth` 都行。还有一个`autojump`的插件和`z`功能差不多，`autojump`需要单独装，如果 z 插件历史记录太多，并且有一些不是自己想要的，可以删除 `z -x` 不要的路径
-
-3、zsh-syntax-highlighting
-
-作用 平常用的ls、cd 等命令输入正确会绿色高亮显示，输入错误会显示其他的颜色。
-
-```
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/plugins/zsh-syntax-highlighting
-```
-
-4、git
-
-默认已开启。可以使用各种 `git` 命令缩写。比如：
-
-```
-git add --all ===> gaa
-git commit -m ===> gcmsg
-```
-
-查看所有 `git` 命令缩写
-
-```shell
-cat ~/.oh-my-zsh/plugins/git/git.plugin.zsh
-```
-
-或者筛选对应的命令，如和 `config` 有关的命令
-
-```shell
-alias | grep config
-```
-
-5、zsh-autosuggestions
-
-```shell
-git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/plugins/zsh-autosuggestions
-```
-
-如果感觉 `→` 补全不方便，还可以自定义补全的快捷键，比如我设置的逗号补全
-
-```
-bindkey ',' autosuggest-accept
-```
-
-在 `.zshrc` 文件添加这句话即可。
-
-6、git-open
-
-在终端里打开当前项目的远程仓库地址，每次改完本地代码，当你想用浏览器访问远程仓库的时候，就很方便。
-
-支持打开的远程仓库
-
-- github.com
-- gist.github.com
-- gitlab.com
-- 自定义域名的 GitLab
-- bitbucket.org
-- Atlassian Bitbucket Server (formerly Atlassian Stash)
-- Visual Studio Team Services
-- Team Foundation Server (on-premises)
-
-```shell
-git clone https://github.com/paulirish/git-open.git ~/.oh-my-zsh/plugins/git-open
-```
-
-7、alias
-
-如名。默认已经安装了，可在 `~/.zshrc` 中添加如下简化操作
-
-```
-alias cp="cp -i"
-alias yi="yay -S"
-alias yr="yay -R"
-alias ys="yay -Ss"
-alias yu="yay -Syu"
-```
-
-#### 更新 oh-my-zsh
-
-修改 自动升级本身没有提示你
-
-```properties
-disable_update_prompt=true
-```
-
-禁用自动升级, 修改 ~/.zshrc
-
-```properties
-disable_auto_update=true
-```
-
-手动更新，运行
-
-```shell
-upgrade_oh_my_zsh
-```
-
-#### 命令帮助 - tldr
-
-```shell
-yay -S tldr
-```
-
-使用
-
-```shell
-tldr cp                                                                                                             
-  cp
-
-  Copy files and directories.
-  More information: https://www.gnu.org/software/coreutils/cp.
-
-  - Copy a file to another location:
-    cp path/to/source_file.ext path/to/target_file.ext
-
-  - Copy a file into another directory, keeping the filename:
-    cp path/to/source_file.ext path/to/target_parent_directory
-
-  - Recursively copy a directory's contents to another location (if the destination exists, the directory is copied inside it):
-    cp -r path/to/source_directory path/to/target_directory
-    
-```
-
-### gnome
-
-#### gnome 扩展
-
-[ArcMenu](https://extensions.gnome.org/extension/3628/arcmenu/) 程序菜单
-
-[AppIndicator and KStatusNotifierItem Support](https://extensions.gnome.org/extension/615/appindicator-support/) 应用托盘图标显示在顶栏
-
-[Blur my Shell](https://extensions.gnome.org/extension/3193/blur-my-shell/) 界面模糊
-
-[Custom Hot Corners - Extended](https://extensions.gnome.org/extension/4167/custom-hot-corners-extended/) 屏幕四角鼠标手势控制
-
-[Dash to Dock](https://extensions.gnome.org/extension/307/dash-to-dock/) Dock
-
-[ddterm](https://extensions.gnome.org/extension/3780/ddterm/) 下拉式终端，建议绑定快捷键
-
-[Desktop Icons NG (DING)](https://extensions.gnome.org/extension/2087/desktop-icons-ng-ding/) 桌面右击菜单添加更过选项，可在桌面添加快捷方式
-
-[GSConnect](https://extensions.gnome.org/extension/1319/gsconnect/) KDEConnect 在 gnome shell 上的实现，与 gnome 结合的非常好
-
-[Lock Keys](https://extensions.gnome.org/extension/36/lock-keys/) 大小写及数字健启用提示
-
-[lunar-calendar](https://extensions.gnome.org/extension/675/lunar-calendar/) 农历支持，需要先安装 `lunar-date` ，设置系统语言为英文后乱码，解决
-
-```shell
-cp /usr/share/locale/zh_CN/LC_MESSAGES/lunar-date.mo /usr/share/locale/en_US/LC_MESSAGES/lunar-date.mo
-```
-
-注销后恢复
-
-[NoAnnoyance v2](https://extensions.gnome.org/extension/2182/noannoyance/) 阻止“窗口已就绪”提示，直接聚焦到将相应窗口
-
-[Proxy Switche](https://extensions.gnome.org/extension/771/proxy-switcher/) 顶栏直接切换代理
-
-[Sound Input & Output Device Chooser](https://extensions.gnome.org/extension/906/sound-output-device-chooser/) 见名知义
-
-[Unite](https://extensions.gnome.org/extension/1287/unite/) 对窗口顶部面板进行了一些布局调整，并删除了窗口装饰，我用来去除JB-IDE的顶栏的，但是最大最小化按钮会被移动到顶栏，所以我配合`Custom Hot Corners - Extended`用鼠标手势来实现最大最小化。
-
-[Vitals](https://extensions.gnome.org/extension/1460/vitals/) 网速 CPU RAM 硬盘等使用指示
-
-#### gnome 配置
-
-dconf && gsettings
-
-dconf：是一套基于键的配置系统, 十分高效, 相当于 Windows 下的注册表，图形化编辑工具 `dconf-editor`
-
-gsettings：是 GNOME-DE 下的高级 API, 是命令行工具/前端, 用来简化对 dconf 的操作
-
-gnome 的软件基本都可以用 gsettings 进行配置。
-
-比如下面的触摸板配置
-
-```shell
-gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
-gsettings set org.gnome.desktop.peripherals.touchpad speed 0.57
-gsettings set org.gnome.desktop.peripherals.touchpad disable-while-typing false
-```
-
-分别对应:
-
-- 轻击模拟鼠标点击, 默认为false
-- 调整触摸板速度, 默认为0
-- 打字时禁用触摸板, 默认为true
-
-#### 保存加载配置
-
-导出当前的 dconf 数据到某个文件:
-
-```bash
-dconf dump / > dconf.settings
-```
-
-加载/导入某个  dconf 文件到当前系统:
-
-```bash
-cat dconf.settings | dconf load -f /
-```
-
-背景图像默认位置是 `/home/mdmbct/.config/background` 可以预先复制一个名为 background 不带扩展名的图片文件过去
 
 ## 虚拟化
 
@@ -2918,8 +2910,6 @@ sudo virsh net-define /etc/libvirt/qemu/networks/default.xml
 ```shell
 sudo virsh net-autostart default
 ```
-
-
 
 ### VirtualBox
 
@@ -3212,7 +3202,7 @@ WINEPREFIX=~/.wine setup_dxvk uninstall
 5、为了更好运行 Windows 游戏，补全 wine 依赖
 
 ```shell
-sudo pacman -S --needed wine-staging giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls \
+sudo pacman -S giflib lib32-giflib libpng lib32-libpng libldap lib32-libldap gnutls lib32-gnutls \
 mpg123 lib32-mpg123 openal lib32-openal v4l-utils lib32-v4l-utils libpulse lib32-libpulse libgpg-error \
 lib32-libgpg-error alsa-plugins lib32-alsa-plugins alsa-lib lib32-alsa-lib libjpeg-turbo lib32-libjpeg-turbo \
 sqlite lib32-sqlite libxcomposite lib32-libxcomposite libxinerama lib32-libgcrypt libgcrypt lib32-libxinerama \
