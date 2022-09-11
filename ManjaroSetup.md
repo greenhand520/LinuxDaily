@@ -239,6 +239,44 @@ menuentry 'Windows Boot Manager (on /dev/sdc3)' --class windows --class os $menu
 }
 ```
 
+我的 `ventoy_grub.cfg` 内容，仅供参考。
+
+```shell
+menuentry 'Manjaro Linux (on intel600p)' --class manjaro --class gnu-linux --class gnu --class os {
+	insmod gzio
+	insmod part_gpt
+	insmod btrfs
+	search --no-floppy --fs-uuid --set=root bbc4893d-3d4d-428f-a18f-b7a1c46fe7f1
+	linux	/@/boot/vmlinuz-5.15-x86_64 root=UUID=bbc4893d-3d4d-428f-a18f-b7a1c46fe7f1 rw rootflags=subvol=@ 
+	initrd	/@/boot/intel-ucode.img /@/boot/initramfs-5.15-x86_64.img
+}
+
+menuentry 'Manjaro To Go (on WDB)' --class manjaro --class gnu-linux --class gnu --class os {
+	insmod gzio
+	insmod part_gpt
+	insmod ext2
+	search --no-floppy --fs-uuid --set=root e9adc5fe-e98e-4c15-9747-360d57a80418
+	linux	/boot/vmlinuz-5.15-x86_64 root=UUID=e9adc5fe-e98e-4c15-9747-360d57a80418 rw udev.log_priority=3 
+	initrd	/boot/intel-ucode.img /boot/initramfs-5.15-x86_64.img
+}
+
+menuentry 'Windows11 To Go (on WDB)' --class windows --class os $menuentry_id_option 'osprober-efi-EB19-40F1' {
+	insmod part_gpt
+	insmod fat
+	set root=($vtoydev,gpt3)
+	if [ x$feature_platform_search_hint = xy ]; then
+	  search --no-floppy --fs-uuid --set=root --hint-bios=$vtoydev,gpt3 --hint-efi=$vtoydev,gpt3 --hint-baremetal=ahci2,gpt3  EB19-40F1
+	else
+	  search --no-floppy --fs-uuid --set=root EB19-40F1
+	fi
+	chainloader /efi/Microsoft/Boot/bootmgfw.efi
+}
+
+menuentry '<-- Return to previous menu [Esc]' --class=vtoyret VTOY_RET {
+    echo 'Return ...'
+}
+```
+
 ## 初始化
 
 ### 包管理
@@ -686,8 +724,6 @@ hy	₩
 yay -S clash
 ```
 
-**下面设置1～4可跳过。**
-
 #### 1、配置
 
 启动 `clash` 生成默认配置文件 `config.yaml` 和 `Country.mmdb`，保存位置为`~/.config/clash/`
@@ -796,7 +832,7 @@ sudo systemctl status clash
 
 #### 5、图形界面
 
-**直接安装这个即可**，为了节约内存，可先安装 clash 设置子启，再安装图形界面，不打开图形界面的自启。
+为了节约内存，可先安装 clash 设置自启，再安装图形界面，不打开图形界面的自启。
 
 ```shell
 yay -S clash-for-windows-chinese	
@@ -885,7 +921,7 @@ sudo ln -s ~/.nanorc /root/.nanorc
 
 #### gnome 扩展
 
-通过浏览器安装 Gnome Shell 扩展需要在火狐浏览器中安装 [GNOME Shell integration](https://addons.mozilla.org/en-US/firefox/addon/gnome-shell-integration/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search) 扩展
+在火狐浏览器中安装 [GNOME Shell integration](https://addons.mozilla.org/en-US/firefox/addon/gnome-shell-integration/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search) 浏览器扩展来下载安装安装 Gnome Shell 扩展。
 
 扩展推荐：
 
