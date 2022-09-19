@@ -13,7 +13,7 @@
 ### 安装在移动硬盘中
 #ventoy
 
-借助 [Ventory](https://www.ventoy.net/cn/) 可实现启动移动硬盘中的系统。这里在制作 Ventoy 启动盘时，需要在 ventoy[分区2](https://www.ventoy.net/cn/doc_disk_layout_gpt.html)之后预留一段空间来安装系统。将 ISO 文件复制到 ventoy[分区1](https://www.ventoy.net/cn/doc_disk_layout_gpt.html)中启动镜像，安装系统选择预留的一段空间，手动分区。我全部用作根分区，没有留交换分区也可以正常运行。根分区文件系统考虑到移动设备意外断点的可能性较大，选择 ext4 分区格式。分区结束后写入硬盘会提示缺少 EFI 引导分区，忽略即可。
+借助 [Ventory](https://www.ventoy.net/cn/) 可实现启动移动硬盘中的系统。这里在制作 Ventoy 启动盘时，需要在 ventoy[分区2](https://www.ventoy.net/cn/doc_disk_layout_gpt.html)之后预留一段空间来安装系统。将 ISO 文件复制到 ventoy[分区1](https://www.ventoy.net/cn/doc_disk_layout_gpt.html)中启动镜像，安装系统选择预留的一段空间，手动分区。我全部用作根分区，没有留交换分区也可以正常运行。根分区文件系统考虑到移动设备意外断电的可能性较大，选择 `ext4` 文件系统，不过我选择 `btrfs` 文件系统。分区结束后写入硬盘会提示缺少 EFI 引导分区，忽略即可。
 
 回到 ventoy 分区1中，新建[ventoy文件夹](https://www.ventoy.net/cn/plugin_entry.html)，使用 ventoy 的[自定义菜单插件](https://www.ventoy.net/cn/plugin_grubmenu.html)来引导刚才装的系统。
 
@@ -62,7 +62,7 @@ linux	/@/boot/vmlinuz-5.15-x86_64
 
 ```shell
 yay -S partclone
-sudo partclone.btrfs -s /dev/nvme0n1p7 -o /dev/sdb2 -b
+sudo partclone.btrfs -s /dev/nvme0n1p2 -o /dev/sdb2 -b
 ```
 
 **注**：
@@ -87,7 +87,7 @@ fdisk -l
 找到你的系统所在分区和EFI分区并挂载引导系统的分区
 
 ```shell
-sudo mount /dev/nvme0n1p7 /mnt/manjaro
+sudo mount /dev/nvme0n1p2 /mnt/manjaro
 ```
 
 挂载 EFI 分区到系统分区的 `/boot/efi`目录
@@ -115,7 +115,7 @@ update-grub
 **注：**
 
 1. 针对使用 btrfs 文件系统的 Linux , 系统分区需要添加 @ ，如 `/mnt/manjaro/@`；
-2. `/dev/nvme0n1p1` 为系统的 EFI 分区，`/dev/nvme0n1p7` 为系统根分区。
+2. `/dev/nvme0n1p1` 为系统的 EFI 分区，`/dev/nvme0n1p2` 为系统根分区。
 
 2、也可以通过自定义 Ventoy 的 grub 菜单，实现引导无法启动的 Linux 启动，再进入系统后做上面相似操作。
 
@@ -180,13 +180,13 @@ sudo update-grub
 挂载目标硬盘
 
 ```shell
-sudo mount /dev/nvme0n1p7 /mnt/manjaro
+sudo mount /dev/nvme0n1p2 /mnt/manjaro
 ```
 
 记录目标硬盘各分区的 UUID
 
 ```shell
-fdisk -x
+lsblk -f
 ```
 
 修改新系统的 fstab 文件，将里面各分区 UUID 改为目标硬盘对应分区的 UUID
@@ -198,7 +198,8 @@ sudo nano /etc/fstab
 补全挂载，并进行修复
 
 ```shell
-sudo mount /dev/nvme0n1p7 /mnt/manjaro
+sudo mount /dev/nvme0n1p2 /mnt/manjaro
+# sudo mount /dev/nvme0n1p1 /mnt/manjaro/@/boot/efi
 
 sudo mount --rbind /dev /mnt/manjaro/@/dev
 sudo mount --rbind /dev/pts /mnt/manjaro/@/dev/pts
@@ -208,17 +209,17 @@ sudo mount --rbind /sys /mnt/manjaro/@/sys
 
 sudo chroot /mnt/manjaro/@
 
-mount /dev/sdb2 /
-mount /dev/sdb1 /boot/efi
+mount /dev/nvme0n1p2 /
+mount /dev/nvme0n1p1 /boot/efi
 
-grub-install --target=x86_64-efi /dev/sdb1
+grub-install --target=x86_64-efi /dev/nvme0n1p1
 grub-mkconfig -o /boot/grub/grub.cfg
 update-grub
 ```
 
 **注：**
 
-1.  `/dev/sdb1 ` 为新系统的 EFI 分区，`/dev/sdb2` 为新系统的根分区。
+1.  `/dev/nvme0n1p1 ` 为新系统的 EFI 分区，`/dev/nvme0n1p2` 为新系统的根分区。
 2. 插在硬盘盒里可能在启动的时候出现无法找到分区的问题，需要查到电脑上。
 
 ### 引导 Windows
@@ -276,6 +277,47 @@ menuentry '<-- Return to previous menu [Esc]' --class=vtoyret VTOY_RET {
     echo 'Return ...'
 }
 ```
+
+### 重新安装内核
+
+内核损坏，无法启动系统，需在另一个 Linux 系统中重新安装内核，步骤和修复引导相似。
+
+```shell
+sudo mount /dev/nvme0n1p2 /mnt/manjaro
+# sudo mount /dev/nvme0n1p1 /mnt/manjaro/@/boot/efi
+
+sudo mount --rbind /dev /mnt/manjaro/@/dev
+sudo mount --rbind /dev/pts /mnt/manjaro/@/dev/pts
+sudo mount --rbind /proc /mnt/manjaro/@/proc
+sudo mount --rbind /sys /mnt/manjaro/@/sys
+# sudo mount --rbind /run /mnt/manjaro/@/run
+
+sudo chroot /mnt/manjaro/@
+
+mount /dev/nvme0n1p2 /
+mount /dev/nvme0n1p1 /boot/efi
+
+# 多了个安装内核的步骤
+pacman -S linux
+
+# 更新引导
+grub-install --target=x86_64-efi /dev/nvme0n1p1
+grub-mkconfig -o /boot/grub/grub.cfg
+update-grub
+```
+
+**注**：
+
+1. 安装内核时可能会有下面提示
+
+   ```
+   error: could not determine cachedir mount point /var/cache/pacman/pkg
+   error: failed to commit transaction (not enough free disk space)
+   ```
+
+   编辑 `/etc/pacman.conf` 文件，注释掉大概39行的 `CheckSpace` 即可，后面可再恢复。
+
+2. 更多内核安装操作，参考：https://zhuanlan.zhihu.com/p/373372136
 
 ## 初始化
 
@@ -917,6 +959,14 @@ yay -S microsoft-edge-stable-bin
 yay -S microsoft-edge-beat-bin
 ```
 
+设置中文显示
+
+```shell
+sudo nano /opt/microsoft/msedge/microsoft-edge
+# 首行添加
+ export LANGUAGE=ZH-CN.UTF-8
+```
+
 ### gnome
 
 #### gnome 扩展
@@ -927,7 +977,7 @@ yay -S microsoft-edge-beat-bin
 
 [ArcMenu](https://extensions.gnome.org/extension/3628/arcmenu/) 程序菜单
 
-[AppIndicator and KStatusNotifierItem Support](https://extensions.gnome.org/extension/615/appindicator-support/) 应用托盘图标显示在顶栏
+[AppIndicator and KStatusNotifierItem Support](https://extensions.gnome.org/extension/615/appindicator-support/) 应用托盘图标显示在顶栏，我遇到它导致内存泄漏问题
 
 [Blur my Shell](https://extensions.gnome.org/extension/3193/blur-my-shell/) 界面模糊
 
@@ -2386,8 +2436,13 @@ ynautilus-share
 #### 压缩解压缩
 
 ```shell
-yay -S file-roller # gnome自带
-yay -S p7zip 
+yay -S unarchiver
+```
+
+解决解压文件乱码，支持所有压缩文件，使用
+
+```shell
+unar archive.zip
 ```
 
 ### 工具
