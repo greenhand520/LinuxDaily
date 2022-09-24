@@ -38,6 +38,16 @@ yay -S jdk8-openjdk
 yay -S jdk11-openjdk
 ```
 
+## Jetbrains
+
+### fcitx 输入法光标不跟随
+
+IDEA 的 JRE 有问题,下载重新编译的 [JRE](https://github.com/RikudouPatrickstar/JetBrainsRuntime-for-Linux-x64/releases/download/2022-04-15_00-02/jbr-linux-x64-2022-04-15_00-02.zip) Linux x64 版本
+
+解压出 `jbr` 文件夹，备份 IDEA 目录下的 `jbr` 文件夹，然后把上面链接下载解压后的 `jbr` 文件夹替换。这里可使用 Linux 的软链接。
+
+参考：https://github.com/RikudouPatrickstar/JetBrainsRuntime-for-Linux-x64
+
 ## 网络抓包
 
 ### charles

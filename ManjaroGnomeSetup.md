@@ -586,7 +586,8 @@ export SDL_IM_MODULE=fcitx
 记得将 fcitx5 添加到自启，然后注销或者重启即可。
 
 ```shell
-cp /usr/share/applications/org.fcitx.Fcitx5.desktop ~/config/autostart
+cp /usr/share/applications/org.fcitx.Fcitx5.desktop ~/.config/autostart
+chmod +x ~/.config/autostart/org.fcitx.Fcitx5.desktop
 ```
 
 #### 皮肤
@@ -643,10 +644,6 @@ yay -S gnome-characters
 28	㉘
 29	㉙
 30	㉚
-zh	㍼
-dz	㍽
-mz	㍾
-lh	㋿
 z	←
 s	↑
 y	→
@@ -666,8 +663,8 @@ gh	√
 4gh	∜
 zby	∝
 wqd	∞
-jiao	∠
-pingxingyu	∥
+j	∠
+pyx	∥
 jj	∩
 bj	∪
 jf	∫
@@ -683,7 +680,6 @@ ydy	≈
 bhy	⊂
 <=	≤
 >=	≥
-yh	⊕
 0cf	⁰
 1cf	¹
 2cf	²
@@ -694,121 +690,6 @@ yh	⊕
 7cf	⁷
 8cf	⁸
 9cf	⁹
-ssd	℃
-hsd	℉
-qf	‰
-wf	‱
-du	°
-om	Ω
-pA	㎀
-nA	㎁
-uA	㎂
-mA	㎃
-kA	㎄
-kul	㎈
-qk	㎉
-pF	㎊
-nF	㎋
-uF	㎌
-ug	㎍
-mg	㎎
-kg	㎏
-hz	㎐
-khz	㎑
-mhz	㎒
-ghz	㎓
-thz	㎔
-fm	㎙
-nm	㎚
-um	㎛
-mm	㎜
-cm	㎝
-km	㎞
-mm2	㎟
-cm2	㎠
-m2	㎡
-km2	㎢
-mm3	㎣
-cm3	㎤
-m3	㎥
-km3	㎦
-m/s	㎧
-m2/s	㎨
-pa	㎩
-kpa	㎪
-mpa	㎫
-jpa	㎬
-hd	㎭
-rad	㎭
-hd/s	㎮
-r/s	㎮
-meipingfangmiaohudu	㎯
-ps	㎰
-ns	㎱
-us	㎲
-ms	㎳
-pV	㎴
-nV	㎵
-uV	㎶
-mV	㎷
-kV	㎸
-MV	㎹
-pW	㎺
-nW	㎻
-uW	㎼
-mW	㎽
-kW	㎾
-MW	㎿
-ko	㏀
-mo	㏁
-am	㏂
-bq	㏃
-cc	㏄
-cd	㏅
-ckg	㏆
-db	㏈
-gy	㏉
-ha	㏊
-hp	㏋
-in	㏌
-jie	㏏
-lm	㏐
-lx	㏓
-mil	㏕
-mol	㏖
-pm	㏘
-ppm	㏙
-sr	㏛
-sv	㏜
-wb	㏝
-v/m	㏞
-a/m	㏟
-1/4	¼
-1/2	½
-3/4	¾
-1/7	⅐
-1/9	⅑
-1/10	⅒
-1/3	⅓
-2/3	⅔
-1/5	⅕
-2/5	⅖
-3/5	⅗
-4/5	⅘
-1/6	⅙
-5/6	⅚
-1/8	⅛
-3/8	⅜
-5/8	⅝
-7/8	⅞
-rmb	¥
-ry	￥
-mf	￠
-my	＄
-yb	￡
-oy	€
-cxy	₩
-hy	₩
 ```
 
 ### clash
@@ -1167,7 +1048,7 @@ yay -S optimus-manager
 yay -S optimus-manager-qt # 图形化设置界面
 ```
 
-Gnome 默认情况下使用 Wayland，与 Optimus-Manager 兼容性不理想。要强制使用 Xorg，需要编辑文件`/etc/gdm/custom.conf`，然后删除行`＃Waylandenable = false`前的`＃`。
+Gnome 默认情况下使用 Wayland，与 Optimus-Manager 兼容性不理想。要强制使用 Xorg，需要编辑文件`/etc/gdm3/custom.conf`，h或者文件 `/etc/gdm/custom.conf` 然后删除行`＃Waylandenable = false`前的`＃`。
 
 KDE设置参考[这个](https://github.com/Askannz/optimus-manager#important--manjaro-kde-users)。
 
@@ -2761,7 +2642,7 @@ yay -S utools
 插件推荐
 
 ```
-超级剪贴板 > ALT+V
+超级剪贴板1.4.0 > ALT+V
 书签与历史记录 
 易翻翻译 > ALT+T 
 JSON编辑器 
@@ -2775,6 +2656,7 @@ maven&gradle
 计算稿纸
 编码小助手
 程序员手册
+特殊符号
 ```
 
 类似utools的一个软件 [ulauncher](https://ulauncher.io/)
