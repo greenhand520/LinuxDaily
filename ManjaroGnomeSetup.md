@@ -558,6 +558,8 @@ alias ws="whereis"
 
 ### 输入法 - fcitx5
 
+参考：https://wiki.archlinux.org/title/Fcitx5
+
 fcitx5 全家桶（fcitx5，fcitx5-qt，fcitx5-gtk，fcitx5-configtool）。
 
 ```shell
@@ -741,26 +743,25 @@ source ~/.profile
 
 或者在设置中修改。
 
-#### 3、设置外部控制ui
+#### 3、控制 UI
 
-```shell
-git clone https://github.com/Dreamacro/clash-dashboard.git
-cd clash-dashboard
-git checkout -b gh-pages origin/gh-pages
-```
-
-在~/.config/clash/config.yaml中设置好ui地址和访问密码，密码也可以不设置
+在`~/.config/clash/config.yaml`中设置好ui地址和访问密码，密码也可以不设置
 
 ```yaml
-external-controller: 127.0.0.1:19090
-external-ui: ${clash-dashboard路径}
+external-controller: 127.0.0.1:37523
 ```
 
-访问路径为：外部控制地址/ui，填入ip、端口、密码即可访问，密码没设旧留空。
+访问路径为：外部控制地址/ui，填入ip、端口、密码即可访问，密码没设旧留空。如：
+
+```
+https://clash.razord.top/#/proxies?host=127.0.0.1&port=37523&secret=${PWD}
+# 或者进入页面输入密码
+https://clash.razord.top/#/proxies?host=127.0.0.1&port=37523
+```
 
 #### 4、设置开机自启动
 
-clash服务
+clash 服务
 
 ```shell
 sudo nano /etc/systemd/system/clash.service
@@ -2046,12 +2047,22 @@ mpv.conf
 图形化mpv配置文件生成-[mpvconfigurator](https://github.com/haasnhoff/mpvconfigurator)
 
 ```properties
+save-position-on-quit
+osc = no
+border = no
 # 自动加载包含媒体文件名的所有字幕
-sub-auto=fuzzy
+sub-auto = fuzzy
 # 程序关闭时记住播放的位置，从而在下一次播放时继续上次的位置播放
 save-position-on-quit
 # 不使用默认的键盘和鼠标操作方案
 no-input-default-bindings
+
+# 预设的高质量渲染
+profile = gpu-hq 
+# 开启色彩管理
+icc-profile-auto 
+# 字幕渲染到视频源分辨率并随视频一起缩放并进行色彩管理
+blend-subtitles = video 
 ```
 
 input.conf
@@ -2204,6 +2215,10 @@ cp ./mpv-scripts-lazy/* /home/${用户名}/.config/mpv
 
 结合上面的配置修改 `input.conf` 配置文件
 
+更多配置参考：
+
+[跨平台播放器 mpv 配置入门 | VCB-Studio](https://vcb-s.com/archives/7594)
+
 #### 录屏 - obs studio
 
 ```shell
@@ -2312,7 +2327,24 @@ yay -S nautilus-folder-icons
 yay -S folder-color-nautilus
 # samba分享 有bug
 ynautilus-share 
+# 使用JetBrainsIDE打开
+jetbrains-nautilus-git
+# 使用VSCode打开
+nautilus-code
+# 右击新建文件
+nautilus-empty-file
+# 嵌入到nautilus界面中的终端
+nautilus-terminal
 ```
+
+让`jetbrains-nautilus-git`识别手动安装的 JetbrainsIDE：
+
+1. 新建 `~/.local/share/JetBrains/Toolbox/apps/`文件夹；
+2. 在其中新建需要右击打开的 IDE 文件夹，比如 `CLion`、`Idea`；
+3. 在每个 IDE 文件夹下新建 `ch-0` 文件夹；
+4. 为手动安装的 IDE 的安装路创建链接，并将其重命名为路径下 `product-info.json` 中 `buildNumber`的值，最后剪切到刚才创建的 `ch-0` 文件夹。  
+
+如为 CLion 所在路径 `~/Apps/JetBrains/CLion`创建软链接，重命名为 `212.5284.40`，然后将软链接文件`212.5284.40`剪切到`~/.local/share/JetBrains/Toolbox/apps/CLion/ch-0`文件夹。
 
 #### 压缩解压缩
 
