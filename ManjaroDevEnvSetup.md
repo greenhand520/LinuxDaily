@@ -3,12 +3,12 @@
 
 参考：[MySQL ArcWiki](https://wiki.archlinux.org/title/MySQL_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87))
 
- 		 [MariaDB ArcWiki](https://wiki.archlinux.org/title/MariaDB_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29)
+### mariadb
 
 安装
 
 ```shell
-yay -S mysql
+yay -S mariadb
 ```
 
 初始化
@@ -21,7 +21,34 @@ sudo systemctl start mysql
 sudo mysql_secure_installation
 ```
 
+### percona-server
+
+安装
+
+```shell
+yay -S percona-server percona-server-clients
+```
+
+初始化
+
+安装完直接启动是启动不了的，因为还没有初始化
+
+```shell
+# 清空数据数据目录的多余文件，如果不清空，会导致初始化失败，默认目录是/var/lib/mysql/
+sudo rm -R /var/lib/mysql
+sudo mysqld --initialize --user=root
+# 初始化后，可以在日志文件里面找到初始化的密码
+sudo grep -i password /var/log/mysqld.log 
+# 给日志文件赋予权限
+sudo chown mysql:mysql /var/log/mysqld.log
+# 启动mysq,修改密码
+sudo systemctl start mysqld
+mysql -u root -p
+alert user root@localhost identified by “rootpassword”;
+```
+
 ## JDK
+
 #JDK #JAVA
 
 ### **jdk8**

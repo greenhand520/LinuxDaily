@@ -1357,13 +1357,33 @@ yay -S icalingua++
 
 #### WeChat
 
+参考：https://aur.archlinux.org/packages/wechat-uos
+
 uos版微信，功能不足
 
 ```shell
 yay -S wechat-uos
 ```
 
+问题：
+
+1、Dock 微信程序图标不正常 -> 修改 desktop 文件中的`StartupWMClass=微信`为 `StartupWMClass=weixin`。原因：`/usr/lib/wechat-uos/package.json`里面定义： `"name": "weixin"`。
+
+2、图标启动报错
+
+> A JavaScript error occurred in the main process
+> Uncaught Exception:
+> Error:write EPIPE
+
+终端输入 `wechat-uos` 启动
+
 可以考虑用 wine 直接运行 wechat.exe
+
+#### 腾讯会议
+
+```shell
+yay -S wemeet-bin
+```
 
 #### Telegram
 
