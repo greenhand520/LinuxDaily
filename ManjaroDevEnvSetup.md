@@ -194,3 +194,60 @@ npm镜像设置成淘宝镜像，加快下载速度
 ```shell
 npm config set registry http://registry.npm.taobao.org/
 ```
+
+## Scala & sbt
+
+安装 Scala 的包管理及构建工具 sbt 即可。
+
+```shell
+yay -S sbt
+```
+
+第一次启动 sbt 非常慢，需要设置 sbt 国内镜像
+
+```shell
+cd ～/.sbt & touch repositories
+# 添加如下内容：
+[repositories]
+local
+aliyun: https://maven.aliyun.com/repository/public
+typesafe: https://repo.typesafe.com/typesafe/ivy-releases/, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext], bootOnly
+ivy-sbt-plugin:https://dl.bintray.com/sbt/sbt-plugin-releases/, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
+sonatype-oss-releases
+maven-central
+sonatype-oss-snapshots
+```
+
+Linux 需要修改配置让其适用于全局
+
+```shell
+nano /etc/sbt/sbtopts
+# 最后添加如下内容：
+-Dsbt.override.build.repos=true
+```
+
+然后在控制台启动 sbt 就不会卡很久了。
+
+参考：https://blog.51cto.com/zhangxueliang/4953538
+
+## MongoDB
+
+```shell
+yay -s mongodb-bin
+```
+
+启动 MongoDB 进程
+
+```shell
+systemctl start mongodb.service
+```
+
+**注意：** 在MongoDB服务第一次启动期间，它将通过创建大文件(用于其日志和其他数据)来[预分配空间](https://docs.mongodb.com/manual/faq/storage/#preallocated-data-files)。这一步可能需要一段时间，在此期间MongoDB Shell不可用。
+
+关闭进程
+
+```shell
+systemctl stop mongodb.service
+```
+
+参考：https://wiki.archlinuxcn.org/wiki/MongoDB

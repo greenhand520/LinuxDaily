@@ -1884,6 +1884,15 @@ GitHub：https://github.com/lakinduakash/linux-wifi-hotspot
 yay -S linux-wifi-hotspot 
 ```
 
+#### secoclient
+
+```shell
+yay -S coreutils-arch
+wget http://www.corem.com.cn/sites/default/files/tools/secoclient/secoclient-linux-64-7.0.2.26.run
+chmod 755 secoclient-linux-64-7.0.2.26.run
+sudo ./secoclient-linux-64-7.0.2.26.run
+```
+
 ### 文档办公
 
 #### xmind 
@@ -1935,6 +1944,16 @@ yay -S wps-office-mui-zh-cn
 # 缺失的字体
 yay -S wps-office-fonts
 yay -S ttf-wps-fonts
+```
+
+#### 打印
+
+```shell
+yay -S manjaro-printer
+yay -S hplip
+sudo systemctl enable --now cups.servic
+sudo systemctl enable --now cups.socket
+sudo systemctl enable --now cups.path
 ```
 
 #### Master PDF Editor
