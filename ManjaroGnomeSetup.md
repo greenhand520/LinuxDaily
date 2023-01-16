@@ -1357,6 +1357,8 @@ yay -S icalingua++
 
 #### WeChat
 
+张小:dragon:没🐴，Tencent fuck you.
+
 参考：https://aur.archlinux.org/packages/wechat-uos
 
 uos版微信，功能不足
