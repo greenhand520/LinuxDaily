@@ -1361,7 +1361,7 @@ yay -S icalingua++
 
 参考：https://aur.archlinux.org/packages/wechat-uos
 
-uos版微信，功能不足
+uos版微信，功能不足。~~可以考虑用 wine 直接运行 wechat.exe~~
 
 ```shell
 yay -S wechat-uos
@@ -1369,7 +1369,7 @@ yay -S wechat-uos
 
 问题：
 
-1、Dock 微信程序图标不正常 -> 修改 desktop 文件中的`StartupWMClass=微信`为 `StartupWMClass=weixin`。原因：`/usr/lib/wechat-uos/package.json`里面定义： `"name": "weixin"`。
+1、Dock 微信程序图标不正常 -> 修改 `/usr/share/applications/wechat-uos.desktop` 文件中的`StartupWMClass=微信`为 `StartupWMClass=weixin`。原因：`/usr/lib/wechat-uos/package.json`里面定义： `"name": "weixin"`。
 
 2、图标启动报错
 
@@ -1379,7 +1379,17 @@ yay -S wechat-uos
 
 终端输入 `wechat-uos` 启动
 
-可以考虑用 wine 直接运行 wechat.exe
+3、二维码一直刷新的问题，手动安装`openssl-1.1`
+
+```shell
+yay -S openssl-1.1
+```
+
+4、使用微信自带截图，安装`scrot`
+
+```shell
+yay -S scrot
+```
 
 #### 腾讯会议
 
@@ -1493,6 +1503,30 @@ yay -S windterm-bin
 ```
 
 ### 网络下载
+
+#### 终端走代理
+
+```shell
+yay -S proxychains-ng
+sudo nano /etc/proxychains.conf
+# 注释掉60行的proxy_dns
+# 最后的内容修改如下，其中9981为clash设置的端口
+[ProxyList]
+# add proxy here ...
+# meanwile
+# defaults set to "tor"
+socks4 	127.0.0.1 9981
+socks5  127.0.0.1 9981
+http  127.0.0.1 9981
+```
+
+使用
+
+`proxychains`后跟要走代理的命令，如：
+
+```shell
+proxychains yay -S xxxx
+```
 
 #### 迅雷
 
@@ -1791,7 +1825,7 @@ sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
    guest account = nobody
    usershare path = /var/lib/samba/usershare
    usershare max shares = 100
-   usershare owner only = yes
+   #usershare owner only = yes
    force create mode = 0070
    force directory mode = 0070
    load printers = no
@@ -1889,6 +1923,9 @@ yay -S linux-wifi-hotspot
 #### secoclient
 
 ```shell
+# 创建所需文件夹
+sudo mkdir /etc/init.d
+# 安装依赖
 yay -S coreutils-arch
 wget http://www.corem.com.cn/sites/default/files/tools/secoclient/secoclient-linux-64-7.0.2.26.run
 chmod 755 secoclient-linux-64-7.0.2.26.run
@@ -1941,7 +1978,6 @@ yay -S obsidian
 
 ```shell
 yay -S wps-office-cn
-# 中文语言包 感觉直接装下面的也可以 看终端输出有构建wps
 yay -S wps-office-mui-zh-cn
 # 缺失的字体
 yay -S wps-office-fonts
@@ -3215,7 +3251,7 @@ rm /tmp/FontSubstitutes
 
 1、启用 CSMT 。开启 CSMT 后，wine 会使用一个单独的线程调用 OpenGL ，从而显著提升性能。3.2 之后默认是启用的，如果使用 staging 版，打开 `Configure Wine(winecfg)`，选择 `Staging` 标签并启用 `CSMT` 。其他版本终端导入注册表启用。
 
-```
+```shell
 cat << EOF > /tmp/csmt
 REnano4
 
@@ -3378,17 +3414,55 @@ sudo cp -r 解压后的图标包 ~/.local/share/icons/
 
 ### Plymouth
 
-[Plymouth ArchWiki](https://wiki.archlinux.org/title/Plymouth_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87))
+参考：[Plymouth ArchWiki](https://wiki.archlinux.org/title/Plymouth_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87))
+
+https://www.cnblogs.com/guochaoxxl/p/14173124.html
+
+1、安装Plymouth
+
+```shell
+yay -S plymouth gdm-plymouth
+```
+
+注意：使用N卡切换工具`OptimusManager` 需要`gdm-prime`这与`gdm-plymouth`冲突，无法同时使用。可安装`gdm-plymouth-prime`兼顾两者的功能。
+
+```shell
+yay -S gdm-plymouth-prime
+```
+
+2、设置钩子
+
+编辑文件`/etc/mkinitcpio.conf`
+
+```shell
+sudo gedit /etc/mkinitcpio.conf
+# 添加plymouth
+HOOKS="base udev plymouth ... "
+```
+
+3、为引导程序设置`quiet splash`参数
+
+```shell
+sudo gedit /etc/default/grub
+# 更改GRUB_CMDLINE_LINUX_DEFAULT为quiet splash
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash vt.global_cursor_default=0 ..."
+```
+
+然后在终端输入
+
+```shell
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+```
+
+重新生成`grub.cfg`引导配置文件。
 
 几个不错的：
 
 https://www.gnome-look.org/p/1466107
 
-https://www.gnome-look.org/p/1635081
-
 https://www.gnome-look.org/p/1495885
 
-https://www.gnome-look.org/p/1784844
+
 
 ### KDE 美化
 

@@ -44,7 +44,17 @@ sudo chown mysql:mysql /var/log/mysqld.log
 # 启动mysq,修改密码
 sudo systemctl start mysqld
 mysql -u root -p
-alert user root@localhost identified by “rootpassword”;
+alter user 'root'@'localhost' identified by 'rootpassword';
+flush privileges;
+quit;
+```
+
+参考：
+
+https://wiki.archlinuxcn.org/wiki/MySQL
+
+```shell
+sudo chown -R mysql:mysql /usr/local/mysql
 ```
 
 ## JDK
@@ -163,7 +173,7 @@ sudo pacman -S python-pip
 
 ```shell
 mkdir ～/.pip
-nano ～/。pip/pip.conf
+nano ～/.pip/pip.conf
 ```
 
 pip.conf 内容为
@@ -232,6 +242,8 @@ nano /etc/sbt/sbtopts
 
 ## MongoDB
 
+参考：https://wiki.archlinuxcn.org/wiki/MongoDB
+
 ```shell
 yay -s mongodb-bin
 ```
@@ -250,4 +262,45 @@ systemctl start mongodb.service
 systemctl stop mongodb.service
 ```
 
-参考：https://wiki.archlinuxcn.org/wiki/MongoDB
+## MinIO
+
+参考：http://docs.minio.org.cn/minio/baremetal/index.html
+
+### 安装
+
+```shell
+yay -S minio minio-client
+# 设置minio文件存储路径 注意不要在NTFS文件系统上设置,我设置后运行会报错
+mkdir /home/mdmbct/minio
+chmod -R 775 /home/mdmbct/minio
+# 设置环境变量
+nano ~/.zshrc
+# 添加以下内容
+export MINIO_ROOT_USER=minioroot
+export MINIO_ROOT_PASSWORD=miniorootpwd
+export MINIO_KMS_SECRET_KEY=my-minio-encryption-key:bXltaW5pb2VuY3J5cHRpb25rZXljaGFuZ2VtZTEyMwo=
+# 运行inio
+minio server /home/mdmbct/minio
+```
+
+运行输出类似于以下内容：
+
+> ```
+> API: http://127.0.0.1:9000
+> RootUser: minioadmin
+> RootPass: minioadmin
+> Region:   us-east-1
+> Console: http://127.0.0.1:64518
+> RootUser: minioadmin
+> RootPass: minioadmin
+> Command-line: http://docs.minio.org.cn/minio/baremetal/minio-client-quickstart-guide
+>    $ mc alias set myminio http://127.0.0.1:9000 minioadmin minioadmin
+> Documentation: http://docs.minio.org.cn
+> ```
+
+| [`MINIO_ROOT_USER`](http://docs.minio.org.cn/minio/baremetal/reference/minio-server/minio-server.html#envvar.MINIO_ROOT_USER) | The [root user](http://docs.minio.org.cn/minio/baremetal/security/minio-identity-management/user-management.html#minio-users-root) 访问钥匙.更换具有长、随机和唯一字符串的样本值。 |
+| :----------------------------------------------------------- | ------------------------------------------------------------ |
+| [`MINIO_ROOT_PASSWORD`](http://docs.minio.org.cn/minio/baremetal/reference/minio-server/minio-server.html#envvar.MINIO_ROOT_PASSWORD) | The [root user](http://docs.minio.org.cn/minio/baremetal/security/minio-identity-management/user-management.html#minio-users-root) 密钥。 更换具有长、随机和唯一字符串的样本值。 |
+| [`MINIO_KMS_SECRET_KEY`](http://docs.minio.org.cn/minio/baremetal/reference/minio-server/minio-server.html#envvar.MINIO_KMS_SECRET_KEY) | MinIO IAM 后端的加密密钥。 更换具有 32 位 base-64 编码值的样本值。 例如， 使用以下命令生成随机密钥:`cat /dev/urandom | head -c 32 | base64 -` |
+
+打开 MinIO 控制台: 打开浏览器和 [http://127.0.0.1:9000](http://127.0.0.1:9000/) 打开 MinIO 控制台 登录页面。使用[`MINIO_ROOT_USER`](http://docs.minio.org.cn/minio/baremetal/reference/minio-server/minio-server.html#envvar.MINIO_ROOT_USER) 和 [`MINIO_ROOT_PASSWORD`](http://docs.minio.org.cn/minio/baremetal/reference/minio-server/minio-server.html#envvar.MINIO_ROOT_PASSWORD) 登录。
