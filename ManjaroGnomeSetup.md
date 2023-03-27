@@ -397,7 +397,7 @@ sudo ln -s ~/.nanorc /root/.nanorc
 
 #### 透明终端
 
-会替换原来的。
+会替换原来的，谨慎考虑
 
 ```shell
 yay -S gnome-terminal-transparency
@@ -554,6 +554,30 @@ alias yr="yay -R"
 alias ys="yay -Ss"
 alias yu="yay -Syu"
 alias ws="whereis"
+```
+
+#### 终端走代理
+
+```shell
+yay -S proxychains-ng
+sudo nano /etc/proxychains.conf
+# 注释掉60行的proxy_dns
+# 最后的内容修改如下，其中9981为clash设置的端口
+[ProxyList]
+# add proxy here ...
+# meanwile
+# defaults set to "tor"
+socks4 	127.0.0.1 9981
+socks5  127.0.0.1 9981
+http  127.0.0.1 9981
+```
+
+使用
+
+`proxychains`后跟要走代理的命令，如：
+
+```shell
+proxychains yay -S xxxx
 ```
 
 ### 输入法 - fcitx5
@@ -838,7 +862,7 @@ mixed-port: 9981
 ```shell
 yay -S microsoft-edge-dev-bin
 yay -S microsoft-edge-stable-bin
-yay -S microsoft-edge-beat-bin
+yay -S microsoft-edge-beta-bin
 ```
 
 设置中文显示
@@ -873,6 +897,16 @@ sudo nano /opt/microsoft/msedge/microsoft-edge
 
 [GSConnect](https://extensions.gnome.org/extension/1319/gsconnect/) KDEConnect 在 gnome shell 上的实现，与 gnome 结合的非常好
 
+重置GSConnect
+
+```shell
+gnome-extensions uninstall gsconnect@andyholmes.github.io
+rm -rf ~/.local/share/gnome-shell/extensions/gsconnect@andyholmes.github.io
+rm -rf ~/.cache/gsconnect
+rm -rf ~/.config/gsconnect
+dconf reset -f /org/gnome/shell/extensions/gsconnect/
+```
+
 [Lock Keys](https://extensions.gnome.org/extension/36/lock-keys/) 大小写及数字健启用提示
 
 [lunar-calendar](https://extensions.gnome.org/extension/675/lunar-calendar/) 农历支持，需要先安装 `lunar-date` ，设置系统语言为英文后乱码，解决
@@ -892,6 +926,8 @@ cp /usr/share/locale/zh_CN/LC_MESSAGES/lunar-date.mo /usr/share/locale/en_US/LC_
 [Unite](https://extensions.gnome.org/extension/1287/unite/) 对窗口顶部面板进行了一些布局调整，并删除了窗口装饰，我用来去除JB-IDE的顶栏的，但是最大最小化按钮会被移动到顶栏，所以我配合`Custom Hot Corners - Extended`用鼠标手势来实现最大最小化。
 
 [Vitals](https://extensions.gnome.org/extension/1460/vitals/) 网速 CPU RAM 硬盘等使用指示
+
+[Reboot to UEFI](https://extensions.gnome.org/extension/5105/reboottouefi/) 重启进入BIOS界面
 
 #### gnome 配置
 
@@ -1503,30 +1539,6 @@ yay -S windterm-bin
 ```
 
 ### 网络下载
-
-#### 终端走代理
-
-```shell
-yay -S proxychains-ng
-sudo nano /etc/proxychains.conf
-# 注释掉60行的proxy_dns
-# 最后的内容修改如下，其中9981为clash设置的端口
-[ProxyList]
-# add proxy here ...
-# meanwile
-# defaults set to "tor"
-socks4 	127.0.0.1 9981
-socks5  127.0.0.1 9981
-http  127.0.0.1 9981
-```
-
-使用
-
-`proxychains`后跟要走代理的命令，如：
-
-```shell
-proxychains yay -S xxxx
-```
 
 #### 迅雷
 
@@ -2986,7 +2998,7 @@ Virtio 半虚拟化驱动程序可提高机器性能，减少 I/O 延迟并将�
 
 - 磁盘总线：Virtio
 - NIC型号：Virtio 以太网
-- 视频型号：QXL
+- 视频型号：Virtio
 
 选择好 Win 镜像后，需要添加一个 SATA CDROM 内容为 `virtio-win.iso` 文件，安装 Win 时浏览加载 Virtio 驱动后才能看到设置的 Virtio 磁盘。
 
@@ -3017,6 +3029,14 @@ sudo virsh net-define /etc/libvirt/qemu/networks/default.xml
 ```shell
 sudo virsh net-autostart default
 ```
+
+需用重启系统生效
+
+2、报错：device {"driver":"virtio-vga-gl","id":"video0","max_outputs":1,"bus":"pcie.0","addr":"0x1"}: opengl is not available'
+
+解决： find the option in virt-manager. (futur reader : Display Spice > Listen type: None > Check OpenGL box)
+
+参考：https://bbs.archlinux.org/viewtopic.php?pid=2018445#p2018445
 
 ### VirtualBox
 
@@ -3109,7 +3129,7 @@ Pro16激活码
 #### 安装
 
 ```shell
-yay -S wine wine-geock wine-mono winetricks wine-installer
+yay -S wine wine-geock wine-mono wine-installer winetricks zenity 
 ```
 
 其中 `wine-gecko ` 和 `wine-mono` 分别用于运行依赖于Internet Explorer和.NET的程序，
