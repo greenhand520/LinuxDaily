@@ -1271,7 +1271,24 @@ GRUB_CMDLINE_LINUX_DEFAULT="resume=UUID=1bad731c-6a6e-4ac0-9f96-7710de9441b7 ude
 sudo update-grub
 ```
 
+### qt软件与gnome桌面风格不统一
+
+```shell
+yay -S adwaita-qt5 adwaita-qt6 qt5ct qt6ct
+```
+
+设置qt应用程序主题环境变量
+
+```shell
+sudo nano /etc/envirnment
+# 将qt5ct或者qt6ct添加到环境变量
+QT_QPA_PLATFORMTHEME=qt6ct
+```
+
+然后在`qt5 settings`或者`qt6 settings`程序中选择`style`为`Adwaita`。
+
 ## 软件
+
 #APP
 
 ### 人脸识别 - Howdy
