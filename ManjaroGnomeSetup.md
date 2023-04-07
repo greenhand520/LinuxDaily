@@ -597,7 +597,7 @@ sudo pacman -S --noconfirm fcitx5-chinese-addons
 yay -S --noconfirm fcitx5-pinyin-zhwiki
 ```
 
-激活输入法就是 `Ctrl` + `Space`，输入法切换就是熟悉的 `Ctrl` + `Shift`，在中文输入法下可以用 `Left Shift` 临时切到英文。
+激活输入法就是 `Ctrl` + `Space`，输入法切换就是熟悉的 `Ctrl` + `Shift`，在中文输入法下可以用 `Left Shift` 临时切到英文。使用`Ctrl + .`切换全角与半角。
 
 修改环境变量 `/etc/environment`，添加如下内容：
 

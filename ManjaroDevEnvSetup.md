@@ -125,6 +125,30 @@ sudo systemctl status redis.service
              └─1257 "/usr/bin/redis-server *:6379"
 ```
 
+## MongoDB
+
+参考：https://wiki.archlinuxcn.org/wiki/MongoDB
+
+```shell
+yay -s mongodb-bin
+```
+
+启动 MongoDB 进程
+
+```shell
+systemctl start mongodb.service
+```
+
+**注意：** 在MongoDB服务第一次启动期间，它将通过创建大文件(用于其日志和其他数据)来[预分配空间](https://docs.mongodb.com/manual/faq/storage/#preallocated-data-files)。这一步可能需要一段时间，在此期间MongoDB Shell不可用。
+
+关闭进程
+
+```shell
+systemctl stop mongodb.service
+```
+
+
+
 ## JDK
 
 #JDK #JAVA
@@ -145,7 +169,7 @@ yay -S jdk11-openjdk
 
 ## Jetbrains
 
-### fcitx 输入法光标不跟随
+fcitx 输入法光标不跟随
 
 IDEA 的 JRE 有问题,下载重新编译的 [JRE](https://github.com/RikudouPatrickstar/JetBrainsRuntime-for-Linux-x64/releases/download/2022-04-15_00-02/jbr-linux-x64-2022-04-15_00-02.zip) Linux x64 版本
 
@@ -341,6 +365,125 @@ Apr 05 20:38:48 host systemd[1]: Started sentinel-dashboard.
 sudo systemctl enable sentinel-dashboard.service 
 ```
 
+## Zookeeper
+
+通过包管理安装
+
+```shell
+yay -S zookeeper-stable
+# 或者
+yay -S zookeeper
+```
+
+或者直接在[官网](https://zookeeper.apache.org/)下载压缩包,解压到安装目录。~~在安装目录下新建`data`和`logs文件夹(待会儿用到)。~~
+
+将conf目录下的zoo_sample.cfg文件，复制一份，重命名为zoo.cfg，修改其中的dataDir为刚才的data文件夹，添加数据日志文件夹为刚才的log文件夹。如下：
+
+```properties
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=../data
+dataLogDir=../logs
+clientPort=2181
+```
+
+进入`bin`目录
+
+```shell
+# 启动server
+./zkServer.sh start
+# 启动client
+./zkCli.sh
+
+# 输出，看到输出“Welcome to ZooKeeper!”就代表安装成功
+....
+.....
+Welcome to ZooKeeper!
+2023-04-06 09:58:15,506 [myid:localhost:2181] - INFO  [main-SendThread(localhost:2181):ClientCnxn$SendThread@1171] - Opening socket connection to server localhost/0:0:0:0:0:0:0:1:2181.
+2023-04-06 09:58:15,506 [myid:localhost:2181] - INFO  [main-SendThread(localhost:2181):ClientCnxn$SendThread@1173] - SASL config status: Will not attempt to authenticate using SASL (unknown error)
+JLine support is enabled
+2023-04-06 09:58:15,508 [myid:localhost:2181] - INFO  [main-SendThread(localhost:2181):ClientCnxn$SendThread@1005] - Socket connection established, initiating session, client: /0:0:0:0:0:0:0:1:40172, server: localhost/0:0:0:0:0:0:0:1:2181
+2023-04-06 09:58:15,522 [myid:localhost:2181] - INFO  [main-SendThread(localhost:2181):ClientCnxn$SendThread@1446] - Session establishment complete on server localhost/0:0:0:0:0:0:0:1:2181, session id = 0x100005e3d590000, negotiated timeout = 30000
+
+WATCHER::
+
+WatchedEvent state:SyncConnected type:None path:null
+[zk: localhost:2181(CONNECTED) 0] %
+```
+
+其他命令
+
+```shell
+# 停止
+./zkServer.sh stop
+# 重启
+./zkServer.sh restart
+#查看状态
+./zkServer.sh status
+```
+
+设置开机自启
+
+```shell
+sudo nano /etc/systemd/system/zk-server.service
+```
+
+内容如下
+
+```shell
+[Unit]
+Description=ZooKeeper-Server 
+After=network.target
+
+[Service]
+Type=forking
+User=${用户名}
+Group=${用户名}
+WorkingDirectory=/home/${用户名}/Apps/apache-zookeeper/bin
+ExecStart=/home/${用户名}/Apps/apache-zookeeper/bin/zkServer.sh start
+ExecReload=/home/${用户名}/Apps/apache-zookeeper/bin/zkServer.sh restart
+ExecStop=/home/${用户名}/Apps/apache-zookeeper/bin/zkServer.sh stop
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+```
+
+启动Zookeeper
+
+```shell
+sudo systemctl daemon-reload  
+sudo systemctl start zk-server.service
+sudo systemctl status zk-server.service
+
+# 输出
+● zk-server.service - ZooKeeper-Server
+     Loaded: loaded (/etc/systemd/system/zk-server.service; disabled; preset: disabled)
+     Active: active (running) since Thu 2023-04-06 10:39:05 CST; 16ms ago
+    Process: 144563 ExecStart=/home/${用户名}/Apps/apache-zookeeper/bin/zkServer.sh start (code=exited, status=0/SUCCESS)
+   Main PID: 144589 (java)
+      Tasks: 54 (limit: 35769)
+     Memory: 108.7M
+        CPU: 733ms
+     CGroup: /system.slice/zk-server.service
+             └─144589 java -Dzookeeper.log.dir=/home/${用户名}/Apps/apache-zookeeper/bin/../logs -Dzookeeper.log.file=zook>
+
+Apr 06 10:39:04 host systemd[1]: Starting ZooKeeper-Server...
+Apr 06 10:39:04 host zkServer.sh[144563]: /usr/bin/java
+Apr 06 10:39:04 host zkServer.sh[144563]: ZooKeeper JMX enabled by default
+Apr 06 10:39:04 host zkServer.sh[144563]: Using config: /home/${用户名}/Apps/apache-zookeeper/bin/../conf/zoo.cfg
+Apr 06 10:39:05 host zkServer.sh[144563]: Starting zookeeper ... STARTED
+Apr 06 10:39:05 host systemd[1]: Started ZooKeeper-Server.
+
+# 启动客户端，测试Server是否启动正常,同样输出“Welcome to ZooKeeper!”就代表安装成功
+
+# 添加到
+sudo systemctl status zk-server.service
+```
+
+
+
 ## 网络抓包
 
 ### charles
@@ -495,28 +638,6 @@ nano /etc/sbt/sbtopts
 然后在控制台启动 sbt 就不会卡很久了。
 
 参考：https://blog.51cto.com/zhangxueliang/4953538
-
-## MongoDB
-
-参考：https://wiki.archlinuxcn.org/wiki/MongoDB
-
-```shell
-yay -s mongodb-bin
-```
-
-启动 MongoDB 进程
-
-```shell
-systemctl start mongodb.service
-```
-
-**注意：** 在MongoDB服务第一次启动期间，它将通过创建大文件(用于其日志和其他数据)来[预分配空间](https://docs.mongodb.com/manual/faq/storage/#preallocated-data-files)。这一步可能需要一段时间，在此期间MongoDB Shell不可用。
-
-关闭进程
-
-```shell
-systemctl stop mongodb.service
-```
 
 ## MinIO
 
