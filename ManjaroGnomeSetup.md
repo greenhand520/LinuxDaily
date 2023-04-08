@@ -2822,7 +2822,7 @@ yay -S remmina freerdp libvncserver spice-gtk
 ```shell
 sudo pacman -U todesk_4.1.0_x86_64.pkg.tar.zst
 # 或者
-yay -S todesk
+yay -S todesk-bin
 ```
 
 如打开无法显示中文，安装字体`noto-fonts-cjk` 
@@ -2837,6 +2837,22 @@ yay -S noto-fonts-cjk
 sudo systemctl stop todeskd.service
 sudo mv /opt/todesk/config/todeskd.conf /opt/todesk/config/todeskd.conf.bak
 sudo systemctl start todeskd.service
+```
+
+#### Teamviewer
+
+```shell
+yay -S teamviewer
+```
+
+设置守护进程开机自启
+
+```shell
+sudo systemctl daemon-reload
+sudo systemctl enable teamviewerd.service
+sudo systemctl start teamviewerd.service
+# 查看是否启动成功
+sudo systemctl status teamviewerd.service
 ```
 
 #### Android 投屏 - scrcpy
