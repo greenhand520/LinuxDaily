@@ -1271,7 +1271,24 @@ GRUB_CMDLINE_LINUX_DEFAULT="resume=UUID=1bad731c-6a6e-4ac0-9f96-7710de9441b7 ude
 sudo update-grub
 ```
 
+### qt软件与gnome桌面风格不统一
+
+```shell
+yay -S adwaita-qt5 adwaita-qt6 qt5ct qt6ct
+```
+
+设置qt应用程序主题环境变量
+
+```shell
+sudo nano /etc/envirnment
+# 将qt5ct或者qt6ct添加到环境变量
+QT_QPA_PLATFORMTHEME=qt6ct
+```
+
+然后在`qt5 settings`或者`qt6 settings`程序中选择`style`为`Adwaita`。
+
 ## 软件
+
 #APP
 
 ### 人脸识别 - Howdy
@@ -2805,7 +2822,7 @@ yay -S remmina freerdp libvncserver spice-gtk
 ```shell
 sudo pacman -U todesk_4.1.0_x86_64.pkg.tar.zst
 # 或者
-yay -S todesk
+yay -S todesk-bin
 ```
 
 如打开无法显示中文，安装字体`noto-fonts-cjk` 
@@ -2820,6 +2837,22 @@ yay -S noto-fonts-cjk
 sudo systemctl stop todeskd.service
 sudo mv /opt/todesk/config/todeskd.conf /opt/todesk/config/todeskd.conf.bak
 sudo systemctl start todeskd.service
+```
+
+#### Teamviewer
+
+```shell
+yay -S teamviewer
+```
+
+设置守护进程开机自启
+
+```shell
+sudo systemctl daemon-reload
+sudo systemctl enable teamviewerd.service
+sudo systemctl start teamviewerd.service
+# 查看是否启动成功
+sudo systemctl status teamviewerd.service
 ```
 
 #### Android 投屏 - scrcpy
