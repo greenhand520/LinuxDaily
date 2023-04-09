@@ -2682,12 +2682,18 @@ yay -S ghex
 
 参考：https://zhuanlan.zhihu.com/p/59119723
 
-#### 系统信息 - neofetch
+#### 系统信息 - fastfatch
 
-大概都会装
+比`neofetch`输出平滑、显示的信息多
 
 ```shell
-yay -S neofetch
+yay -S fastfetch
+```
+
+让输出花里胡哨些，可安装`lolcat`
+
+```shell
+fastfetch | lolcat
 ```
 
 #### APK预览 - apk preview
