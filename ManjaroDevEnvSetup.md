@@ -640,7 +640,7 @@ JAVA_OPT="${JAVA_OPT} -server -Xms8g -Xmx8g"
 JAVA_OPT="${JAVA_OPT} -server -Xms1g -Xmx1g"
 ```
 
-**dashboard**
+## RocketMQ-dashboard
 
 文档参考：https://rocketmq.apache.org/zh/docs/deploymentOperations/04Dashboard/
 
@@ -716,6 +716,7 @@ After=network.target
 
 [Service]
 Type=forking
+WorkingDirectory=/home/${用户名}/Apps/rocketmq-dashboard
 ExecStart=/home/${用户名}/Apps/rocketmq-dashboard/dashboard-startup.sh start
 ExecReload=/home/${用户名}/Apps/rocketmq-dashboard/dashboard-startup.sh restart
 ExecStop=/home/${用户名}/Apps/rocketmq-dashboard/dashboard-startup.sh stop
