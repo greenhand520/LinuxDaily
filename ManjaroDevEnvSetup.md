@@ -482,7 +482,274 @@ Apr 06 10:39:05 host systemd[1]: Started ZooKeeper-Server.
 sudo systemctl status zk-server.service
 ```
 
+## RocketMQ
 
+官网：https://rocketmq.apache.org/
+
+文档参考：https://rocketmq.apache.org/zh/docs/quickStart/01quickstart
+
+下载地址：https://rocketmq.apache.org/download
+
+将二进制文件复制到安装目录，解压。运行下面命令
+
+```shell
+#!/bin/bash
+
+sh /home/${用户名}/Apps/rocketmq-all/bin/mqnamesrv &
+sleep 0.5s
+sh /home/${用户名}/Apps/rocketmq-all/bin/mqbroker -n localhost:9876 --enable-proxy &
+exit -1;
+```
+
+安装dashboard后，登陆查看是否正常连接至rocketmq。正常连接后，运行下面命令停止rocketmq。
+
+```shell
+#!/bin/bash
+
+sh /home/${用户名}/Apps/rocketmq-all/bin/mqshutdown broker
+sleep 0.5s
+sh /home/${用户名}/Apps/rocketmq-all/bin/mqshutdown namesrv
+```
+
+添加至自启
+
+在安装路径新建`rocketmq,sh`文件，赋予执行权限，内容如下
+
+```shell
+#!/bin/bash
+ 
+ROCKETMQ_HOME=/home/${用户名}/Apps/rocketmq-all
+ROCKETMQ_BIN=${ROCKETMQ_HOME}/bin
+ADDR=`hostname -i`:9876
+LOG_DIR=${ROCKETMQ_HOME}/logs
+NAMESERVER_LOG=${LOG_DIR}/namesrv.log
+BROKER_LOG=${LOG_DIR}/broker.log
+ 
+start() {
+	if [ ! -d ${LOG_DIR} ];then
+	mkdir ${LOG_DIR}
+	fi
+	cd ${ROCKETMQ_HOME}
+	nohup sh bin/mqnamesrv > ${NAMESERVER_LOG} 2>&1 &
+	echo -n "The Name Server boot success..."
+	nohup sh bin/mqbroker -n ${ADDR} > ${BROKER_LOG} 2>&1 &
+	echo -n "The broker[%s, ${ADDR}] boot success..."
+}
+stop() {
+	cd ${ROCKETMQ_HOME}
+	sh bin/mqshutdown broker
+	sleep 1
+	sh bin/mqshutdown namesrv
+}
+
+restart() {
+	stop
+	sleep 5
+	start
+}
+ 
+case "$1" in
+	start)
+		start
+	;;
+	stop)
+		stop
+	;;
+	restart)
+		restart
+	;;
+	*)
+		echo $"Usage: $0 {start|stop|restart}"
+		exit 2
+esac
+```
+
+新建服务文件
+
+```shell
+sudo nano /etc/systemd/system/rocketmq.service
+```
+
+内容如下
+
+```properties
+[Unit]
+Description=rocketmq
+Documentation=http://mirror.bit.edu.cn/apache/rocketmq/
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/home/${用户名}/Apps/rocketmq-all/rocketmq.sh start
+ExecReload=/home/${用户名}/Apps/rocketmq-all/rocketmq.sh restart
+ExecStop=/home/${用户名}/Apps/rocketmq-all/rocketmq.sh stop
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+```
+
+启动服务
+
+```shell
+sudo systemctl daemon-reload  
+sudo systemctl start rocketmq.service 
+sudo systemctl status rocketmq.service 
+# 输出
+● rocketmq.service - rocketmq
+     Loaded: loaded (/etc/systemd/system/rocketmq.service; disabled; preset: disabled)
+     Active: active (running) since Wed 2023-04-12 23:46:55 CST; 5s ago
+       Docs: http://mirror.bit.edu.cn/apache/rocketmq/
+    Process: 12502 ExecStart=/home/${用户名}/Apps/rocketmq-all/rocketmq.sh start (code=exited, status=0/SUCCESS)
+      Tasks: 152 (limit: 18899)
+     Memory: 8.6G
+        CPU: 11.174s
+     CGroup: /system.slice/rocketmq.service
+             ├─12504 sh bin/mqnamesrv
+             ├─12505 sh bin/mqbroker -n 127.0.1.1:9876
+             ├─12513 sh /home/${用户名}/Apps/rocketmq-all/bin/runserver.sh org.apache.rocketmq.namesrv.NamesrvStartup
+             ├─12514 sh /home/${用户名}/Apps/rocketmq-all/bin/runbroker.sh org.apache.rocketmq.broker.BrokerStartup -n 127>
+             ├─12563 /bin/java -server -Xms8g -Xmx8g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:G1ReservePercent=25 -XX:>
+             └─12565 /bin/java -server -Xms4g -Xmx4g -Xmn2g -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m -XX:+UseCo>
+
+Apr 12 23:46:55 host systemd[1]: Starting rocketmq...
+Apr 12 23:46:55 host rocketmq.sh[12502]: The Name Server boot success...The broker[%s, 127.0.1.1:9876] boot succ>
+Apr 12 23:46:55 host systemd[1]: Started rocketmq.
+
+# 输出SUCCESS，添加自启
+sudo systemctl enable rocketmq.service 
+```
+
+注：默认占用内存达8G，修改`bin/runserver.sh`和`bin/runbroker.sh`中的内存参数设置
+
+runserver.sh
+
+```shell
+# 原配置，约71行
+JAVA_OPT="${JAVA_OPT} -server -Xms128m -Xmx128m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m"
+# 改为
+JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx256m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+```
+
+runbroker.sh
+
+```shell
+# 原配置，约85行
+JAVA_OPT="${JAVA_OPT} -server -Xms8g -Xmx8g"
+# 改为
+JAVA_OPT="${JAVA_OPT} -server -Xms1g -Xmx1g"
+```
+
+**dashboard**
+
+文档参考：https://rocketmq.apache.org/zh/docs/deploymentOperations/04Dashboard/
+
+编译源码后得到jar，复制到安装路径，将源码中`resource`中文件复制到jar所在目录下，修改`application.properties`，修改内容如下
+
+```properties
+# dashboard访问端口
+server.port=9867
+# rocketmq nameserver地址，多个用;隔开
+rocketmq.config.namesrvAddr=localhost:9876
+```
+
+终端运行检查是否够可以访问页面
+
+```shell
+java -jar /home/${用户名}/Apps/rocketmq-dashboard/rocketmq-dashboard-1.0.1-SNAPSHOT.jar
+```
+
+添加到自启，新建`dashboard-startup.sh`文件，内容如下
+
+```shell
+#!/bin/bash
+
+# java -jar /home/${用户名}/Apps/rocketmq-dashboard/rocketmq-dashboard-1.0.1-SNAPSHOT.jar
+
+ 
+RUN_NAME="rocketmq-dashboard-1.0.1-SNAPSHOT.jar"
+JAVA_OPTS=/home/${用户名}/Apps/rocketmq-dashboard/rocketmq-dashboard-1.0.1-SNAPSHOT.jar
+ 
+LOG_DIR=/home/${用户名}/Apps/rocketmq-dashboard/logs
+LOG_FILE=$LOG_DIR/rocketmq-dashboard-dashboard.log
+LOG_OPTS=/home/${用户名}/Apps/rocketmq-dashboard/rocketmq-dashboard_temp.log
+ 
+start() {
+        nohup java -Xms128M -Xmx512M -XX:PermSize=128M -XX:MaxPermSize=256M -Dcsp.rocketmq-dashboard.log.dir=$LOG_DIR -Dlogging.file=$LOG_FILE -Dproject.name=rocketmq-dashboard-dashboard -jar $JAVA_OPTS >$LOG_OPTS 2>&1 &
+        echo "$RUN_NAME started success."
+}
+ 
+stop() {
+        echo "stopping $RUN_NAME ..."
+        kill -9 `ps -ef|grep $JAVA_OPTS|grep -v grep|grep -v stop|awk '{print $2}'`
+}
+ 
+case "$1" in
+        start)
+            start
+            ;;
+        stop)
+            stop
+            ;;
+        restart)
+            stop
+            start
+            ;;
+        *)
+                echo "Userage: $0 {start|stop|restart}"
+                exit 1
+esac
+```
+
+新建服务文件
+
+```shell
+sudo nano /etc/systemd/system/rocketmq-dashboard.service
+```
+
+内容如下
+
+```properties
+[Unit]
+Description=rocketmq-dashboard
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/home/${用户名}/Apps/rocketmq-dashboard/dashboard-startup.sh start
+ExecReload=/home/${用户名}/Apps/rocketmq-dashboard/dashboard-startup.sh restart
+ExecStop=/home/${用户名}/Apps/rocketmq-dashboard/dashboard-startup.sh stop
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+```
+
+启动dashboard
+
+```shell
+sudo systemctl daemon-reload  
+sudo systemctl start rocketmq-dashboard.service 
+sudo systemctl status rocketmq-dashboard.service 
+# 输出
+● rocketmq-dashboard.service - rocketmq-dashboard
+     Loaded: loaded (/etc/systemd/system/rocketmq-dashboard.service; disabled; preset: disabled)
+     Active: active (running) since Wed 2023-04-12 22:20:26 CST; 34ms ago
+    Process: 8781 ExecStart=/home/${用户名}/Apps/rocketmq-dashboard/dashboard-startup.sh start (code=exited, status=0/SUCC>
+   Main PID: 8782 (java)
+      Tasks: 9 (limit: 18899)
+     Memory: 8.7M
+        CPU: 43ms
+     CGroup: /system.slice/rocketmq-dashboard.service
+             └─8782 java -Xms128M -Xmx512M -XX:PermSize=128M -XX:MaxPermSize=256M -Dcsp.rocketmq-dashboard.log.dir=/hom>
+
+Apr 12 22:20:26 host systemd[1]: Starting rocketmq-dashboard...
+Apr 12 22:20:26 host dashboard-startup.sh[8781]: rocketmq-dashboard-1.0.1-SNAPSHOT.jar started success.
+Apr 12 22:20:26 host systemd[1]: Started rocketmq-dashboard.
+
+# 输出SUCCESS，可以通过IP:PORT访问的话，添加自启
+sudo systemctl enable rocketmq-dashboard.service 
+```
 
 ## 网络抓包
 
