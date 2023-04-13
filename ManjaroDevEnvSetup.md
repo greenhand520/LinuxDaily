@@ -752,6 +752,157 @@ Apr 12 22:20:26 host systemd[1]: Started rocketmq-dashboard.
 sudo systemctl enable rocketmq-dashboard.service 
 ```
 
+## Seata
+
+文档：https://seata.io/zh-cn/docs/overview/what-is-seata.html
+
+下载：https://seata.io/zh-cn/blog/download.html
+
+**安装**
+
+下载后解压到安装文件夹，修改`conf`文件夹下`application.yml`文件，这里使用 nacos 配置和注册，使用数据库存储配置，修改内容如下
+
+```yaml
+server:
+  port: 7091
+
+spring:
+  application:
+    name: seata-server
+
+logging:
+  config: classpath:logback-spring.xml
+  file:
+    path: ${user.home}/logs/seata
+  extend:
+    logstash-appender:
+      destination: 127.0.0.1:4560
+    kafka-appender:
+      bootstrap-servers: 127.0.0.1:9092
+      topic: logback_to_logstash
+
+console:
+  user:
+    username: seata
+    password: seata
+
+seata:
+  config:
+    type: nacos
+    nacos:
+      server-addr: 127.0.0.1:8848
+      namespace: 
+      group: SEATA_GROUP
+      username: nacos
+      password: nacos
+      context-path:
+      data-id: seataServer.properties
+  registry:
+    type: nacos
+    preferred-networks: 30.240.*
+    nacos:
+      application: seata-server
+      server-addr: 127.0.0.1:8848
+      group: SEATA_GROUP
+      namespace: 
+      cluster: default
+      username: nacos
+      password: nacos
+      context-path:
+  store:
+    mode: db
+  security:
+    secretKey: SeataSecretKey0c382ef121d778043159209298fd40bf3850a017
+    tokenValidityInMilliseconds: 1800000
+    ignore:
+      urls: /,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.ico,/console-fe/public/**,/api/v1/auth/login
+```
+
+新建 mysql 数据库`seate`，导入`seata/script/server/db/mysql.sql`。
+
+修改`seata/script/config-center/config.txt`内容，将存储模式`store mode`中的 redis 和 file 模式注释掉，修改 db 模式中的配置
+
+```properties
+# 修改mysql8驱动
+store.db.driverClassName=com.mysql.cj.jdbc.Driver
+store.db.url=jdbc:mysql://127.0.0.1:3306/seata?useUnicode=true&rewriteBatchedStatements=true
+# 修改用户名和密码
+store.db.user=user
+store.db.password=userpwd
+```
+
+在 nacos 控制面板创建配置，Data id 为`seataServer`，Group 为`SEATA_GROUP`，配置格式选择`Properties`，内容为刚才修改后的`config.txt`内容。
+
+然后启动 seata-server
+
+```shell
+./bin/seata-server.sh
+```
+
+`seata-server.sh`默认的JVM配置比较吃内存，可以修改小些，参考如下
+
+```properties
+# 约130行左右
+JAVA_OPT="${JAVA_OPT} -server -Dloader.path=${LOADER_PATH:="$BASEDIR/lib"} -Xmx${JVM_XMX:="512m"} -Xms${JVM_XMS:="512m"} -Xmn${JVM_XMN:="128m"} -Xss${JVM_XSS:="512k"} -XX:SurvivorRatio=10 -XX:MetaspaceSize=${JVM_MetaspaceSize:="128m"} -XX:MaxMetaspaceSize=${JVM_MaxMetaspaceSize:="256m"} -XX:MaxDirectMemorySize=${JVM_MaxDirectMemorySize:=1024m} -XX:-OmitStackTraceInFastThrow -XX:-UseAdaptiveSizePolicy"
+```
+
+启动成功后，在日志文件中最后输出
+
+```shell
+22:44:03.000  INFO --- [                     main] com.alibaba.nacos.client.naming          : [BEAT] adding beat: BeatInfo{port=8091, ip='192.168.31.239', weight=1.0, serviceName='SEATA_GROUP@@seata-server', cluster='default', metadata={}, scheduled=false, period=5000, stopped=false} to beat map.
+22:44:03.003  INFO --- [                     main] com.alibaba.nacos.client.naming          : [REGISTER-SERVICE] public registering service SEATA_GROUP@@seata-server with instance: Instance{instanceId='null', ip='192.168.31.239', port=8091, weight=1.0, healthy=true, enabled=true, ephemeral=true, clusterName='default', serviceName='null', metadata={}}
+22:44:03.008  INFO --- [                     main] io.seata.server.ServerRunner             : seata server started in 842 millSeconds
+```
+
+在 nacos 的[服务管理-服务列表](http://127.0.0.1:8848/nacos/#/serviceManagement?serverId=center&group=&dataId=&namespace=&pageNo=&pageSize=&appName=&namespaceShowName=public)中看到`seata-server`的服务名即代表注册成功。
+
+**添加到自启**
+
+在 seata/bin/ 文件夹下新建`seata-server-srartup.sh`文件，内容如下
+
+```shell
+
+```
+
+新建服务文件
+
+```shell
+sudo nano /etc/systemd/system/seata-server.service
+```
+
+内容如下
+
+```properties
+[Unit]
+Description=SeataServer
+Documentation=https://seata.io/zh-cn/docs/user/configurations.html
+After=network.target
+ 
+[Service]
+Type=forking
+WorkingDirectory=/home/${用户名}/Apps/seata
+ExecStart=/home/${用户名}/Apps/seata/bin/seata-server-startup.sh start
+ExecReload=/home/${用户名}/Apps/seata/bin/seata-server-startup.sh restart
+ExecStop=/home/${用户名}/Apps/seata/bin/seata-server-startup.sh stop
+Restart=always
+ 
+[Install]
+WantedBy=multi-user.target
+```
+
+启动 SeataServer
+
+```shell
+sudo systemctl daemon-reload  
+sudo systemctl start seata-server.service 
+sudo systemctl status seata-server.service 
+# 输出
+
+
+# 输出SUCCESS，可以通过IP:PORT访问的话，添加自启
+sudo systemctl enable seata-server.service 
+```
+
 ## 网络抓包
 
 ### charles
