@@ -1468,6 +1468,24 @@ yay -S telegram-desktop
 yay -S visual-studio-code-bin
 ```
 
+占用“在文件中文件打开”，终端输入
+
+```shell
+xdg-mime query default inode/directory
+# 输出
+code.desktop
+# 然后改回 nautilus
+xdg-mime default org.gnome.Nautilus.desktop inode/directory
+```
+
+再次查看
+
+```shell
+xdg-mime query default inode/directory       
+# 输出
+org.gnome.Nautilus.desktop
+```
+
 #### gedit
 
 ```shell
