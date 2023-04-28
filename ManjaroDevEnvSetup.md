@@ -1023,6 +1023,25 @@ npm镜像设置成淘宝镜像，加快下载速度
 npm config set registry http://registry.npm.taobao.org/
 ```
 
+**nvm**
+
+参考：https://github.com/nvm-sh/nvm
+
+```shell
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+```
+
+使用
+
+```shell
+# 所有node版本
+nvm ls-remote
+# 安装最新版
+nvm install node
+# 安装指定版本 第一个安装的版本会作为默认的node
+nvm install 16.7.1
+```
+
 ## Scala & sbt
 
 安装 Scala 的包管理及构建工具 sbt 即可。
