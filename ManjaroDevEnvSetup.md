@@ -222,6 +222,11 @@ nano /home/${用户名}/Apps/nacos/conf/aplication.properties
 取消注释这几行
 
 ```properties
+spring.datasource.platform=mysql
+spring.sql.init.platform=mysql
+
+db.num=1
+
 db.url.0=jdbc:mysql://127.0.0.1:3306/nacos?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect>
 db.user.0=root
 db.password.0=root
