@@ -1287,6 +1287,14 @@ QT_QPA_PLATFORMTHEME=qt6ct
 
 然后在`qt5 settings`或者`qt6 settings`程序中选择`style`为`Adwaita`。
 
+### 开启SSH远程登录
+
+```shell
+sudo systemctl enable sshd.service
+sudo systemctl start sshd.service
+sudo systemctl restart sshd.service
+```
+
 ## 软件
 
 #APP
