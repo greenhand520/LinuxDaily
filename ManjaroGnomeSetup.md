@@ -1238,7 +1238,7 @@ yay -S system-config-printer gnome-user-share gnome-remote-desktop rygel openssh
 #### 程序图标右击无“显示详情”
 
 ```shell
-yay -S pamac-gnome-intergration
+yay -S pamac-gnome-integration
 ```
 
 #### 添加 snap 和 flatpak 支持
@@ -1287,12 +1287,71 @@ QT_QPA_PLATFORMTHEME=qt6ct
 
 然后在`qt5 settings`或者`qt6 settings`程序中选择`style`为`Adwaita`。
 
-### 开启SSH远程登录
+### 挂载 NTFS 并读写
+
+安装驱动
 
 ```shell
-sudo systemctl enable sshd.service
-sudo systemctl start sshd.service
-sudo systemctl restart sshd.service
+yay -S ntfs-3g
+```
+
+查看分区
+
+```shell
+sudo fdisk --list
+
+# 显示的 NTFS 文件系统硬盘
+Device         Start        End    Sectors   Size Type
+/dev/nvme1n1p1  2048 2000408575 2000406528 953.9G Microsoft basic data
+```
+
+打开 `/etc/fstab`
+
+```shell
+sudo nano /etc/fstab
+```
+
+添加以下内容
+
+```properties
+/dev/nvme1n1p1 /mnt/Data ntfs-3g user,auto,rw,dev,exec,suid
+```
+
+该命令共有6个参数，以空格分割，其中：
+
+`/dev/nvme1n1p1`表示你要挂载的分区，根据你查看分区的结果填写。
+
+`/mnt/Data`表示挂载点，根据你自身需求填写。
+
+`ntfs-3g`表示待挂载分区使用的文件系统。分为以下几种情况：
+
+NTFS：填写ntfs-3g或ntfs（在Ubuntu 20.04中ntfs是链接到ntfs-3g的）。FAT32或FAT16或FAT：填写vfat.自动检测文件系统：填写auto。
+
+`auto和 noauto`： 这是控制设备是否自动挂载的选项。auto是默认选择的选项，这样，设备会在启动或者你使用mount -a命令时按照fstab的内容自动挂载。如果你不希望这样，就使用noauto选项，如果这样的话，你就只能明确地通过手工来挂载设备。
+
+`user和 nouser`：这是一个非常有用的选项，user选项允许普通用户也能挂载设备，而nouser则只允许root用户挂载。nouser是默认选项，这也是让很多 Linux新手头疼的东西，因为他们发现没有办法正常挂载光驱，Windows分区等。如果你作为普通身份用户遇到类似问题，或者别的其他问题，就请把 user属性增加到fstab中。
+
+`exec和 noexec`： exec允许你执行对应分区中的可执行二进制程序，同理，noexec的作用刚好相反。如果你拥有一个分区，分区上有一些可执行程序，而恰好你又不愿意，或者不能在你的系统中执行他们，就可以使用noexec属性。这种情况多发生于挂载Windows分区时。exec是默认选项，理由很简单，如果 noexec变成了你/根分区的默认选项的话
+
+`rw和ro`：让该分区以可擦写或者是只读的型态挂载上来，如果你想要分享的数据是不给用户随意变更的， 这里也能够配置为只读。则不论在此文件系统的文件是否配置 w 权限，都无法写入！
+
+`sync和 async`：对于该文件系统的输入输出应该以什么方式完成。sync的意思就是同步完成，通俗点讲，就是当你拷贝一个东西到设备或者分区中时，所有的写入变化将在你输入cp命令后立即生效，这个东西应该立马就开始往设备或者分区里面拷贝了。而如果是async，也就是输入输出异步完成的话，当你拷贝一个东西到设备或者分区中时，可能在你敲击cp命令后很久，实际的写入操作才会执行，换句话说，就是进行了缓冲处理。有时候这种机制蛮不错的，因为sync会影响你系统的运行速度，但是这也会带来一些问题。想一想，当你希望将一个文件拷贝到u盘上时，你执行了cp 命令，却忘记执行umount命令（它会强行将缓冲区内容写入），那么你拷贝的文件实际上并没有在u盘上面。如果你是使用的mv命令，而你又很快将u盘拔出……恭喜你，文件会从这个星球上消失的。因此，虽然async是默认属性，但是对于u盘，移动硬盘这种可移动存储设备，最好还是让他们使用sync选项。
+
+`suid和nosuid`：该文件系统是否允许 SUID 的存在？如果不是运行文件放置目录，也可以配置为 nosuid 来取消这个功能！
+
+`defaults`：同时具有 rw, suid, dev, exec, auto, nouser, async 等参数。 基本上，默认情况使用 defaults 配置即可！
+
+也可以在 `gnome-disk-utility`这个软件中手动配置。
+
+### A problem has occurred and the system can‘t recover'
+
+1. 按 **ctrl+alt+f2** (或者 **ctrl+alt+fn+f2** )可以进入命令行界面
+2. 输入 **su root**，切换到root用户
+
+```shell
+yay -S --overwrite "*" gnome gdm
+# 等待安装完成，重启
+reboot
 ```
 
 ## 软件

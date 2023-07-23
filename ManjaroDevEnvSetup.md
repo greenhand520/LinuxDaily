@@ -52,11 +52,9 @@ quit;
 配置其他IP可访问
 
 ```sql
-use mysql;
 # 更新域属性，’%’表示允许外部访问：
 update user set host='%' where user ='root';
 # 再执行授权语句
-flush privileges;
 grant all privileges on *.* to 'root'@'%'with grant option;
 # 执行以上语句之后再执行
 flush privileges;
@@ -94,136 +92,6 @@ https://wiki.archlinuxcn.org/wiki/MySQL
 sudo chown -R mysql:mysql /usr/local/mysql
 ```
 
-## Mycat2
-
-官网：http://mycatone.top/
-
-安装JDK,要求JDK1.8,非1.8环境请自行编译源码。
-
-1、下载所需要的文件
-
-需要用到的文件下载地址：http://dl.mycat.org.cn/2.0/
-
-解压`install-template/mycat2-install-template-xxx.zip` 文件，到安装路径，比如`/home/user/Apps/mycat2`。
-
-在[链接](http://dl.mycat.org.cn/2.0/1.21-release/)中下载最新jar包，复制到上面模板文件解压后的lib文件夹中
-
-2、mysql创建用户,权限配置
-
-创建用户 ,用户名为mycat,密码为123456,赋权限
-
-```sql
-CREATE USER 'mycat'@'%' IDENTIFIED BY '123456';
-# mysql8必须要赋的权限
-GRANT XA_RECOVER_ADMIN ON *.* TO 'root'@'%';
-# 视情况赋值权限
-GRANT ALL PRIVILEGES ON *.* TO 'mycat'@'%' ;
-flush privileges;
-```
-
-3、修改mycat的prototype的配置
-
-启动mycat之前需要确认prototype数据源所对应的mysql数据库配置,修改对应的user(用户),password(密码),url中的ip 
-
-```shell
-nano conf/datasources/prototypeDs.datasource.json
-```
-
-修改内容如下：
-
-```json
-{
-    "dbType":"mysql",
-    "idleTimeout":60000,
-    "initSqls":[],
-    "initSqlsGetConnection":true,
-    "instanceType":"READ_WRITE",
-    "maxCon":1000,
-    "maxConnectTimeout":3000,
-    "maxRetryCount":5,
-    "minCon":1,
-    "name":"prototypeDs",
-    "password":"123456",
-    "type":"JDBC",
-    "url":"jdbc:mysql://localhost:3306/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8",
-    "user":"mycat",
-    "weight":0
-}
-```
-
-4、启动mycat
-
-以下三种均为启动mycat服务的方式,根据环境选择以下即可
-
-1)、linux启动命令
-
-```shell
-# 赋予权限
-sudo chmod 777 -R ./mycat/bin
-cd mycat/bin
-./mycat start
-./mycat status
-# 还有下面命令可用
-./mycat start   	#启动
-./mycat stop 		#停止
-./mycat console 	#前台运行
-./mycat install 	#添加到系统自动启动（暂未实现）
-./mycat remove 		#取消随系统自动启动（暂未实现）
-./mycat restart 	#重启服务
-./mycat pause 		#暂停
-./mycat status		#查看启动状态
-```
-
-2)、windows启动命令
-
-```shell
-cd mycat/bin
- 
-#使用PowerShell
-./mycat install
-./mycat start
-./mycat status
- 
-#使用CMD
-mycat install
-mycat start
-mycat status
-```
-
-3)、jar执行
-
-```shell
-java -DMYCAT_HOME=mycat2\src\main\resources -jar mycat2-0.5-SNAPSHOP.jar Mycat2\mycat2\src\main\resources 
-#是配置文件所在文件夹
-```
-
-日志大概显示如下，表示启动成功
-
-```
-Running mycat2...
-wrapper  | --> Wrapper Started as Console
-wrapper  | Launching a JVM...
-jvm 1    | Wrapper (Version 3.2.3) http://wrapper.tanukisoftware.org
-jvm 1    |   Copyright 1999-2006 Tanuki Software, Inc.  All Rights Reserved.
-jvm 1    | 
-jvm 1    | path:/home/user/Apps/mycat/./conf
-jvm 1    | 2023-06-13 09:16:39,330[INFO]com.alibaba.druid.pool.DruidDataSource.init:998{dataSource-1} inited
-jvm 1    | 2023-06-13 09:16:40,098[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:168Mycat Vertx server c85cb65c-3f3e-4776-9595-2820ac3ae543 started up.
-jvm 1    | 2023-06-13 09:16:40,098[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:168Mycat Vertx server 87aa00a8-0059-498e-8dff-d70f828cd365 started up.
-jvm 1    | 2023-06-13 09:16:40,098[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:168Mycat Vertx server d5b888d4-bb83-406a-bbde-53e206bc7340 started up.
-jvm 1    | 2023-06-13 09:16:40,098[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:168Mycat Vertx server d913631b-f9a1-4e2a-8953-1c387326e7ec started up.
-jvm 1    | 2023-06-13 09:16:40,098[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:168Mycat Vertx server a3109440-53fa-4678-91be-5a1b38e8b229 started up.
-jvm 1    | 2023-06-13 09:16:40,098[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:168Mycat Vertx server efdcfb8a-b94c-4330-85f9-694ee6184a02 started up.
-jvm 1    | 2023-06-13 09:16:40,098[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:168Mycat Vertx server 3397a937-09cd-4e77-b92a-9cc6ad0f8b5d started up.
-jvm 1    | 2023-06-13 09:16:40,098[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:168Mycat Vertx server 4c893ee1-f7b5-4707-bd87-7093a43cf9c7 started up.
-```
-
-5、测试
-
-使用Navicat或者DBeaver连接mycat2，用户名密码在文件`conf/users/root.usre.json`中定义了，其中文件开头的root就是用户名。
-
-使用Datagrip连接后，无法查看数据库，不知道问题所在。
-
 ## Redis
 
 ```shell
@@ -241,7 +109,7 @@ daemonize yes
 
 # 保存退出后设置开机自启
 sudo systemctl enable redis.service
-sudo systemctl start redis.service
+sudo systemctl start redis,service
 
 # 查看运行状态
 sudo systemctl status redis.service
@@ -1158,25 +1026,6 @@ npm镜像设置成淘宝镜像，加快下载速度
 
 ```shell
 npm config set registry http://registry.npm.taobao.org/
-```
-
-**nvm**
-
-参考：https://github.com/nvm-sh/nvm
-
-```shell
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-```
-
-使用
-
-```shell
-# 所有node版本
-nvm ls-remote
-# 安装最新版
-nvm install node
-# 安装指定版本 第一个安装的版本会作为默认的node
-nvm install 16.7.1
 ```
 
 ## Scala & sbt
