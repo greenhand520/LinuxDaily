@@ -319,6 +319,28 @@ update-grub
 
 2. 更多内核安装操作，参考：https://zhuanlan.zhihu.com/p/373372136
 
+### 修改 SWAP
+
+修改后需要将 `etc/fstab`和 `/etc/default/grub` 这2个文件中原 交换分区的 UUID 换成新的。要不然启动会报
+
+`ERROR:resume:hibernation device'UUID=xxxx' not found`这样的错误。
+
+```properties
+# etc/fstab
+UUID=3f48c68c-4717-438e-aff6-26ac8f75fcde swap           swap    defaults,noatime 0 2
+
+# /etc/default/grub
+GRUB_CMDLINE_LINUX_DEFAULT="quiet resume=UUID=3f48c68c-4717-438e-aff6-26ac8f75fcde"
+```
+
+将上面2和文件中出现的旧 swap 分区 UUID 替换成新的后，执行
+
+```shell
+sudo update-grub
+```
+
+
+
 ## 初始化
 
 ### 包管理
@@ -594,7 +616,12 @@ sudo pacman -S --noconfirm fcitx5-im
 
 ```shell
 sudo pacman -S --noconfirm fcitx5-chinese-addons
+# 中文维基百科词库
 yay -S --noconfirm fcitx5-pinyin-zhwiki
+# 汉语成语词库
+fcitx5-pinyin-chinese-idiom
+# 萌娘百科词库
+fcitx5-pinyin-moegirl
 ```
 
 激活输入法就是 `Ctrl` + `Space`，输入法切换就是熟悉的 `Ctrl` + `Shift`，在中文输入法下可以用 `Left Shift` 临时切到英文。使用`Ctrl + .`切换全角与半角。
@@ -631,7 +658,10 @@ yay -S fcitx5-skin-fluentdark-git
 #### 特殊符号及 emoji
 
 ```shelL
+# 单独的软件输入emoji
 yay -S gnome-characters
+# fcitx扩展输入emoji，安装后使用快捷键 ctl + alt + . 唤出
+yay -S fcitx5-im-emoji-picker-git
 ```
 
 可在设置中绑定快捷键快速调出
@@ -923,11 +953,17 @@ cp /usr/share/locale/zh_CN/LC_MESSAGES/lunar-date.mo /usr/share/locale/en_US/LC_
 
 [Sound Input & Output Device Chooser](https://extensions.gnome.org/extension/906/sound-output-device-chooser/) 见名知义
 
+[Media Label and Controls (Mpris Label)](https://extensions.gnome.org/extension/4928/mpris-label/) 顶栏添加媒体控制组件 
+
 [Unite](https://extensions.gnome.org/extension/1287/unite/) 对窗口顶部面板进行了一些布局调整，并删除了窗口装饰，我用来去除JB-IDE的顶栏的，但是最大最小化按钮会被移动到顶栏，所以我配合`Custom Hot Corners - Extended`用鼠标手势来实现最大最小化。
 
 [Vitals](https://extensions.gnome.org/extension/1460/vitals/) 网速 CPU RAM 硬盘等使用指示
 
+[RunCat](https://extensions.gnome.org/extension/2986/runcat/) 一个显示 CPU 占有率的小猫，占有率越高小猫跑的越快
+
 [Reboot to UEFI](https://extensions.gnome.org/extension/5105/reboottouefi/) 重启进入BIOS界面
+
+[Caffeine](https://extensions.gnome.org/extension/517/caffeine/) 禁用屏幕保护程序和自动挂起
 
 #### gnome 配置
 
@@ -1354,6 +1390,26 @@ yay -S --overwrite "*" gnome gdm
 reboot
 ```
 
+### 手机音频通过蓝牙流转至  Linux
+
+```shell
+# 安装pulseaudio
+yay -S pulseaudio-bluetooth
+# 配置
+sudo nano /etc/pulse/system.pa
+# 添加下面指令
+
+### Adding bluetooth audio streaming on Linux ###
+load-module module-bluetooth-policy
+load-module module-bluetooth-discover
+
+# 重启音频服务
+pulseaudio --kill
+pulseaudio --start
+# 我这里重启服务后声音没有恢复，故重启系统了
+# 接下来就可以在手机上连接linux设备，会发现是一个音频设备
+```
+
 ## 软件
 
 #APP
@@ -1552,6 +1608,8 @@ xdg-mime query default inode/directory
 # 输出
 org.gnome.Nautilus.desktop
 ```
+
+以上问题也会引起打开 `nautilus` 卡死。
 
 #### gedit
 
@@ -2065,7 +2123,7 @@ yay -Ss mindmaster_cn
 #### draw.io 
 
 ```shell
-yay -S drawio-desktop
+yay -S drawio-desktop-
 ```
 
 #### typora 免费版
@@ -2134,7 +2192,7 @@ yay -S pandoc
 yay -S tracker foliate
 ```
 
-另外还有功能很全的 calibre
+另外还有功能很全的 calibre，或者一个不错的阅读器 koodo-reader-bin
 
 ```shell
 yay -S calibre
@@ -2185,7 +2243,7 @@ yay -S gimp
 
 ### 视频音乐
 
-#### 音乐播放 - listen1
+#### ~~音乐播放 - listen1~~
 
 国内多平台音乐播放，体验不是很好，每次启动都是播放歌单第一首歌，经常出现歌曲无法播放的情况
 
@@ -2193,9 +2251,9 @@ yay -S gimp
 yay -S patch listen1-desktop-appimage
 ```
 
-#### spotify-adblock
+#### spotify
 
-spotify去广告版，免费、曲库全，可以和手机联动
+spotify去广告版，免费、曲库全，可以和手机联动，去广告参考[这里](https://github.com/Nuzair46/SpotX-Linux)
 
 ```shell
 yay -S spotify-adblock
@@ -2204,7 +2262,7 @@ yay -S spotify-adblock
 #### 音乐下载 - 洛雪音乐
 
 ```shell
-yay -S lx-music
+yay -S lx-music-desktop-appimage
 ```
 
 #### 视频转码 - handbrake
@@ -2213,7 +2271,7 @@ yay -S lx-music
 yay -S handbrake
 ```
 
-#### 视频格式转换 - ciano
+#### ~~视频格式转换 - ciano~~
 
 ```shell
 yay -S ciano
@@ -2500,12 +2558,13 @@ yay -S nutstore
 
 ```shell
 rm -R ~/.nutstore/apps/lightapp
-rm ~/.local/share/applications/xxxxlightapp.desktop # 具体名字忘了
+rm ~/.local/share/applications/nutstore-lightapp.desktop 
 ```
 
 #### nautilus 扩展
 
 ```shell
+yay -S nautilus-admin
 yay -S nautilus-copy-path 
 # 文件hash计算
 yay -S gtkhash gtkhash-nautilus
@@ -2517,7 +2576,7 @@ yay -S meld nautilus-compare
 yay -S nautilus-folder-icons
 yay -S folder-color-nautilus
 # samba分享 有bug
-ynautilus-share 
+yay -S nautilus-share 
 # 使用JetBrainsIDE打开
 jetbrains-nautilus-git
 # 使用VSCode打开
@@ -2647,7 +2706,7 @@ yay -S bleachbit
 
 1、默认会以当前用户启动项部分垃圾文件没有权限删除，做以下修改。
 
-新建`/usr/bin/su_blechbit`，内容如下：
+新建`/usr/bin/blechbit_su`，内容如下：
 
 ```bash
 #!/bin/bash
