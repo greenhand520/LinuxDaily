@@ -1,7 +1,5 @@
 
 ## 	安装
-#SystemInstall
-
 ### 与 Windows 并存
 
 在 Windows 中压缩出需要的空间，安装界面中手动分区。第一个分区作为EFI分区，最小300M，挂载点为 `/boot/efi`，fat32格式；第二个分区为根分区，挂载点为`/`，ext4 或者 btrfs 格式；第三个分区为 swap 分区，格式为 linuxswap，这个分区不是必须的。当然想单独分个区挂载 `/home` 也是可以的。
@@ -11,8 +9,6 @@
 安装过程中，开始释放文件后就可以断开网络了，否则大概卡在93%。试了修改源，还是不行，故还是断网直接。
 
 ### 安装在移动硬盘中
-#ventoy
-
 借助 [Ventory](https://www.ventoy.net/cn/) 可实现启动移动硬盘中的系统。这里在制作 Ventoy 启动盘时，需要在 ventoy[分区2](https://www.ventoy.net/cn/doc_disk_layout_gpt.html)之后预留一段空间来安装系统。将 ISO 文件复制到 ventoy[分区1](https://www.ventoy.net/cn/doc_disk_layout_gpt.html)中启动镜像，安装系统选择预留的一段空间，手动分区。我全部用作根分区，没有留交换分区也可以正常运行。根分区文件系统考虑到移动设备意外断电的可能性较大，选择 `ext4` 文件系统，不过我选择 `btrfs` 文件系统。分区结束后写入硬盘会提示缺少 EFI 引导分区，忽略即可。
 
 回到 ventoy 分区1中，新建[ventoy文件夹](https://www.ventoy.net/cn/plugin_entry.html)，使用 ventoy 的[自定义菜单插件](https://www.ventoy.net/cn/plugin_grubmenu.html)来引导刚才装的系统。
@@ -778,7 +774,7 @@ allow-lan: true
 #### 2、修改系统代理
 
 ```shell
-nano ~/.prfile #在最后写入下面内容
+nano ~/.profile #在最后写入下面内容
 ```
 
 ```shell
@@ -832,7 +828,7 @@ After=network.target
 Type=simple
 Restart=always
 User=root
-ExecStart=/usr/bin/clash -d /home/${用户名}/.config/clash
+ExecStart=/usr/bin/clash -d /home/$USER/.config/clash
 
 [Install]
 WantedBy=multi-user.target
@@ -865,6 +861,8 @@ sudo systemctl status clash
 
 ```shell
 yay -S clash-for-windows-chinese	
+# 或者安装这个,不需要安装clash
+yay -S clash-verge-bin
 ```
 
 设置如下：
@@ -1412,8 +1410,6 @@ pulseaudio --start
 
 ## 软件
 
-#APP
-
 ### 人脸识别 - Howdy
 
 参考：https://wiki.archlinux.org/title/Howdy
@@ -1529,6 +1525,8 @@ yay -S ocs-url
 
 ```shell
 yay -S icalingua++
+# 官方qq
+yay -S linuxqq
 ```
 
 #### WeChat
@@ -1608,6 +1606,8 @@ xdg-mime query default inode/directory
 # 输出
 org.gnome.Nautilus.desktop
 ```
+
+以上问题也会引起打开 `nautilus` 卡死。
 
 以上问题也会引起打开 `nautilus` 卡死。
 
@@ -1711,7 +1711,7 @@ yay -S xunlei-bin
 **1、安装**
 
 ```shell
-yay -S qbittorrent-enhanced
+yay -S make qbittorrent-enhanced
 ```
 
 qbittorrent-enhanced-nox 是无 GUI 版本，可使用WebUI打开，默认登陆网址：ip:8080
@@ -1739,7 +1739,7 @@ After=network.target
 
 [Service]
 Type=forking
-User=${用户名}
+User=$USER
 ExecStart=qbittorrent-nox -d
 RemainAfterExit=yes
 
@@ -1783,19 +1783,19 @@ ACGTracker
 yay -S aria2
 ```
 
-1、创建`/etc/aria2/aria2.conf`，内容如下：
+1、创建`~/.local/aria2/aria2.conf`，内容如下：
 
 ```properties
-dir=/home/${用户名}/Downloads
+dir=/home/$USER/Downloads
 # on-download-complete=/conf/on-complete.sh
-log=/home/${用户名}/.cache/aria2/download.log
+log=/home/$USER/.cache/aria2/download.log
 log-level=error
 console-log-level=error
 ## 保存会话相关
 # 从会话文件中读取下载任务
-input-file=/home/${用户名}/.cache/aria2/aria2.session
+input-file=/home/$USER/.cache/aria2/aria2.session
 # 在Aria2退出时保存`错误/未完成`的下载任务到会话文件
-save-session=/home/${用户名}/.cache/aria2/aria2.session
+save-session=/home/$USER/.cache/aria2/aria2.session
 # 定时保存会话, 0为退出时才保存, 需1.16.1以上版本, 默认:0
 save-session-interval=30
  
@@ -1907,7 +1907,7 @@ After=network.target
 [Service]
 Type=simple
 # 不能是root，否则下载的文件无权操作
-User=${用户名} 
+User=$USER 
 # 注意：下面一行指出了配置文档的路径，非常必要
 ExecStart=/usr/bin/aria2c --conf-path=/etc/aria2/aria2.conf  --enable-rpc --rpc-listen-all
  
@@ -1946,9 +1946,9 @@ sudo systemctl status aria2c
      CGroup: /system.slice/aria2c.service
              └─121770 /usr/bin/aria2c --conf-path=/etc/aria2/aria2.conf --enable-rpc --rpc-listen-all
 
-4月 29 16:01:36 ${用户名}-manjaro systemd[1]: Started Aria2c Service.
-4月 29 16:01:36 ${用户名}-manjaro aria2c[121770]: 04/29 16:01:36 [WARN] Neither --rpc-secret nor a combination of --rpc-user >
-4月 29 16:01:36 ${用户名}-manjaro aria2c[121770]: 04/29 16:01:36 [NOTICE] IPv4 RPC：正在监听 TCP 端口 6800
+4月 29 16:01:36 $USER-manjaro systemd[1]: Started Aria2c Service.
+4月 29 16:01:36 $USER-manjaro aria2c[121770]: 04/29 16:01:36 [WARN] Neither --rpc-secret nor a combination of --rpc-user >
+4月 29 16:01:36 $USER-manjaro aria2c[121770]: 04/29 16:01:36 [NOTICE] IPv4 RPC：正在监听 TCP 端口 6800
 ```
 
 4、安装Aria2浏览器扩展
@@ -2039,7 +2039,7 @@ sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
 	# 是否允许匿名(guest)访问,等同于public
 	guest ok = no
 	# 有效用户
-	valid user = ${用户名}
+	valid user = $USER
 ```
 
 通过命令
@@ -2053,7 +2053,7 @@ testparm
 将系统用户添加到samba用户组，并设置密码
 
 ```shell
-sudo smbpasswd -a ${用户名}
+sudo smbpasswd -a $USER
 ```
 
 重启smb，nmb服务
@@ -2123,13 +2123,13 @@ yay -Ss mindmaster_cn
 #### draw.io 
 
 ```shell
-yay -S drawio-desktop-
+yay -S drawio-desktop
 ```
 
 #### typora 免费版
 
 ```shell
-yay -S typora-free-cn
+yay -S typora-free
 ```
 
 #### 桌面便利贴 - xpad
@@ -2241,6 +2241,12 @@ yay -S drawing
 yay -S gimp
 ```
 
+#### 图片查看 - gthumb
+
+```shell
+yay -S gthumb
+```
+
 ### 视频音乐
 
 #### ~~音乐播放 - listen1~~
@@ -2262,7 +2268,7 @@ yay -S spotify-adblock
 #### 音乐下载 - 洛雪音乐
 
 ```shell
-yay -S lx-music-desktop-appimage
+yay -S lx-music
 ```
 
 #### 视频转码 - handbrake
@@ -2271,7 +2277,7 @@ yay -S lx-music-desktop-appimage
 yay -S handbrake
 ```
 
-#### ~~视频格式转换 - ciano~~
+#### 视频格式转换 - ciano
 
 ```shell
 yay -S ciano
@@ -2457,9 +2463,9 @@ MUTE cycle mute
 
 ```shell
 git clone https://github.com/Mackel123/mpv-scripts-lazy.git
-cp /home/${用户名}/.config/mpv/mpv.conf /home/${用户名}/.config/mpv/mpv.conf.bak
-cp /home/${用户名}/.config/mpv/input.conf /home/${用户名}/.config/mpv/input.conf.bak
-cp ./mpv-scripts-lazy/* /home/${用户名}/.config/mpv
+cp /home/$USER/.config/mpv/mpv.conf /home/$USER/.config/mpv/mpv.conf.bak
+cp /home/$USER/.config/mpv/input.conf /home/$USER/.config/mpv/input.conf.bak
+cp ./mpv-scripts-lazy/* /home/$USER/.config/mpv
 ```
 
 结合上面的配置修改 `input.conf` 配置文件
@@ -2474,7 +2480,7 @@ cp ./mpv-scripts-lazy/* /home/${用户名}/.config/mpv
 yay -S obs-studio
 ```
 
-安装 NVFBC
+N卡可以安装 NVFBC
 
 ```shell
 git clone https://github.com/keylase/nvidia-patch.git
@@ -2580,7 +2586,7 @@ yay -S nautilus-share
 # 使用JetBrainsIDE打开
 jetbrains-nautilus-git
 # 使用VSCode打开
-nautilus-code
+yay -S pkg-config nautilus-code
 # 右击新建文件
 nautilus-empty-file
 # 嵌入到nautilus界面中的终端
@@ -2675,13 +2681,13 @@ yay -S fsearch
 
 ```shell
 # 回收站
-/home/${用户名}/.local/share/Trash 
+/home/$USER/.local/share/Trash 
 # 主题
-/home/${用户名}/.local/share/themes 
+/home/$USER/.local/share/themes 
 /usr/share/themes
 /usr/share/app-info/icons
 /usr/share/icons
-/home/${用户名}/.local/share/icons
+/home/$USER/.local/share/icons
 ${挂载点}/System Volume Information
 ${挂载点}/$RECYCLE.BIN
 ```
@@ -2769,15 +2775,15 @@ X-GNOME-UsesNotifications=true
 ```shell
 /var/cache/pkgfile
 /var/log/pacman.log
-/var/tmp/pamac-build-${用户名}
+/var/tmp/pamac-build-$USER
 /var/log
 # microsoft-edge-dev换成其他浏览器路径应该也适用
-/home/${用户名}/.cache/microsoft-edge-dev/Default/Cache
-/home/${用户名}/.config/listen1/Cache
-/home/${用户名}/.config/Code/Cache
-/home/${用户名}/.cache/yay
+/home/$USER/.cache/microsoft-edge-dev/Default/Cache
+/home/$USER/.config/listen1/Cache
+/home/$USER/.config/Code/Cache
+/home/$USER/.cache/yay
 # 回收站
-/home/${用户名}/.local/share/Trash 
+/home/$USER/.local/share/Trash 
 ```
 
 #### 剪贴板记录 - CopyQ
@@ -2925,6 +2931,8 @@ tldr cp
 
 ```shell
 yay -S utools
+# 添加自启
+cp /usr/share/applications/utools.desktop /home/mdmbct/.config/autostart
 ```
 
 插件推荐
@@ -3035,8 +3043,6 @@ yay -S steam-manjaro
 ## 虚拟化
 
 ### KVM
-#KVM
-
 参考：https://wiki.archlinux.org/title/KVM
 
 https://wiki.archlinux.org/title/Kernel_module
@@ -3305,8 +3311,6 @@ Pro16激活码
 > ZF71R-DMX85-08DQY-8YMNC-PPHV8
 
 ### Wine
-#wine
-
 参考：[Wine ArcWiki](https://wiki.archlinux.org/title/Wine_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87))
 
 #### 安装
@@ -3543,7 +3547,7 @@ LD_PRELOAD /usr/lib/libgamemodeauto.so.0
 # For NVIDIA GPU
 __GL_THREADED_OPTIMIZATION 1
 __GL_SHADER_CACHE 1
-__GL_SHADER_DISK_CACHE_PATH=/home/${用户名}/.cache/lutris_gpu_cache
+__GL_SHADER_DISK_CACHE_PATH=/home/$USER/.cache/lutris_gpu_cache
 # For AMD GPU
 mesa_glthread true
 ```
