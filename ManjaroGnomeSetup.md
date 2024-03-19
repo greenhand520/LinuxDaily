@@ -959,9 +959,11 @@ cp /usr/share/locale/zh_CN/LC_MESSAGES/lunar-date.mo /usr/share/locale/en_US/LC_
 
 [RunCat](https://extensions.gnome.org/extension/2986/runcat/) 一个显示 CPU 占有率的小猫，占有率越高小猫跑的越快
 
-[Reboot to UEFI](https://extensions.gnome.org/extension/5105/reboottouefi/) 重启进入BIOS界面
+[Reboot to UEFI](https://extensions.gnome.org/extension/5105/reboottouefi/) 重启进入 BIOS 界面
 
 [Caffeine](https://extensions.gnome.org/extension/517/caffeine/) 禁用屏幕保护程序和自动挂起
+
+[Input Method Panel](https://extensions.gnome.org/extension/261/kimpanel/) 在 wayland 环境下需要安装
 
 #### gnome 配置
 
@@ -1408,6 +1410,14 @@ pulseaudio --start
 # 接下来就可以在手机上连接linux设备，会发现是一个音频设备
 ```
 
+### x11 窗口环境下非整数缩放
+
+```shell
+yay -S gnome-control-center-x11-scaling
+```
+
+然后`Alt+F2`，重启桌面，再次打开`gnome-setting`，就会发现分数缩放出来了
+
 ## 软件
 
 ### 人脸识别 - Howdy
@@ -1529,40 +1539,12 @@ yay -S icalingua++
 yay -S linuxqq
 ```
 
-#### WeChat
+#### 微信
 
-张小:dragon:没🐴，Tencent fuck you.
-
-参考：https://aur.archlinux.org/packages/wechat-uos
-
-uos版微信，功能不足。~~可以考虑用 wine 直接运行 wechat.exe~~
+活久见了，2024年3月~~没🐴~~张小:dragon:终于出了原生 linux 微信。
 
 ```shell
-yay -S wechat-uos
-```
-
-问题：
-
-1、Dock 微信程序图标不正常 -> 修改 `/usr/share/applications/wechat-uos.desktop` 文件中的`StartupWMClass=微信`为 `StartupWMClass=weixin`。原因：`/usr/lib/wechat-uos/package.json`里面定义： `"name": "weixin"`。
-
-2、图标启动报错
-
-> A JavaScript error occurred in the main process
-> Uncaught Exception:
-> Error:write EPIPE
-
-终端输入 `wechat-uos` 启动
-
-3、二维码一直刷新的问题，手动安装`openssl-1.1`
-
-```shell
-yay -S openssl-1.1
-```
-
-4、使用微信自带截图，安装`scrot`
-
-```shell
-yay -S scrot
+yay -S wechat-universal-bwrap
 ```
 
 #### 腾讯会议
@@ -2156,6 +2138,12 @@ yay -S wps-office-fonts
 yay -S ttf-wps-fonts
 ```
 
+#### Libreoffice
+
+```shell
+yay -S libreoffice-still libreoffice-still-zh-cn
+```
+
 #### 打印
 
 ```shell
@@ -2265,6 +2253,8 @@ spotify去广告版，免费、曲库全，可以和手机联动，去广告参�
 yay -S spotify-adblock
 ```
 
+其他音乐平台歌单导入 spotify，参考这里：[yyrcd](https://yyrcd.com/n2s/)
+
 #### 音乐下载 - 洛雪音乐
 
 ```shell
@@ -2277,7 +2267,7 @@ yay -S lx-music
 yay -S handbrake
 ```
 
-#### 视频格式转换 - ciano
+#### ~~视频格式转换 - ciano~~
 
 ```shell
 yay -S ciano
@@ -2292,6 +2282,10 @@ yay -S mpv
 参考：https://wiki.archlinux.org/title/Mpv
 
 https://mpv.io/manual/stable/
+
+https://vcb-s.com/archives/7594
+
+https://hooke007.github.io/unofficial/mpv_start.html
 
 ```shell
 cp -r /usr/share/doc/mpv/ ~/.config/
@@ -3297,6 +3291,90 @@ yay -S genymotion
 下载后直接拖进去，重启即可。
 
 OpenGApps for ANdroid 9.0 下载地址：https://www.androidsage.com/2018/08/08/download-gapps-for-android-9-pie/
+
+### Waydroid
+
+参考：https://wiki.archlinuxcn.org/wiki/Waydroid
+
+https://zhuanlan.zhihu.com/p/603603346
+
+1、安装
+
+```shell
+# 我使用的是linux6.6.10，较低版本的linux安装binder请参考archwiki
+yay -S binder_linux-dkms
+# 等待安装完成
+yay -S waydroid
+# 剪切板同步
+yay -S python-pyclip
+```
+
+2、初始化
+
+在初始化 Waydroid 之后，如果映像不可用，将会自动下载最新的 Android 镜像
+
+```shell
+waydroid init
+```
+
+初始化支持 GApps 的 Waydroid：
+
+```shell
+waydroid init -s GAPPS -f
+```
+
+说明：下载可能会耗时很久；你也可以自行下载之后将文件放到 /usr/share/waydroid-extra/images/，使用到的地址如下：
+
+```
+https://sourceforge.net/projects/waydroid/files/images/system/lineage/waydroid_x86_64
+https://sourceforge.net/projects/waydroid/files/images/vendor/waydroid_x86_64
+```
+
+接下来启动`waydroid-container.service`。
+
+```shell
+systemctl enable --now waydroid-container
+```
+
+Waydroid 现在应该能正常工作了。
+
+2、使用
+
+waydroid 只支持 wayland ，确保使用 wayland 而不是 x11，使用下面命令查询使用的窗口系统
+
+```shell
+echo $XDG_SESSION_TYPE
+```
+
+确保`waydroid-container.service` 正在运行，然后执行：
+
+```shell
+waydroid session start
+```
+
+Waydroid 会话现在已处于活动状态，这里有一些与 Waydroid 交互的实用命令：
+
+启动 GUI：
+
+```shell
+waydroid show-full-ui
+```
+
+启动 shell：
+
+```shell
+waydroid shell
+```
+
+安装应用程序：
+
+```
+waydroid app install $path_to_apk
+```
+
+4、网络
+
+
 
 ### VMware workstation pro
 
