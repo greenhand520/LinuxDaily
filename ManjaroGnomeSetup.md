@@ -857,11 +857,9 @@ sudo systemctl status clash
 
 #### 5、图形界面
 
-为了节约内存，可先安装 clash 设置自启，再安装图形界面，不打开图形界面的自启。
-
 ```shell
 yay -S clash-for-windows-chinese	
-# 或者安装这个,不需要安装clash
+# 或者安装这个，rust编写的
 yay -S clash-verge-bin
 ```
 
@@ -963,7 +961,11 @@ cp /usr/share/locale/zh_CN/LC_MESSAGES/lunar-date.mo /usr/share/locale/en_US/LC_
 
 [Caffeine](https://extensions.gnome.org/extension/517/caffeine/) 禁用屏幕保护程序和自动挂起
 
-[Input Method Panel](https://extensions.gnome.org/extension/261/kimpanel/) 在 wayland 环境下需要安装
+[Input Method Panel](https://extensions.gnome.org/extension/261/kimpanel/) 在 wayland 环境下需要安装，输入法面板使用 KDE 的 kimpanel 协议
+
+[Bluetooth Quick Connect](https://extensions.gnome.org/extension/1401/bluetooth-quick-connect/) 允许配对的蓝牙设备通过 GNOME 系统菜单连接和断开连接，显示电池状态等
+
+[Media Label and Controls (Mpris Label)](https://extensions.gnome.org/extension/4928/mpris-label/) 在面板中显示一个标签，其中包含来自 MPRIS 兼容播放器的歌曲/标题/专辑/艺术家信息。还可以控制播放器，提高/降低其音量，自定义标签，以及更多。此扩展适用于 Spotify, Vlc, Rhythmbox, Firefox, Chromium 和(可能)任何 MPRIS 兼容播放器。
 
 #### gnome 配置
 
@@ -1541,7 +1543,7 @@ yay -S linuxqq
 
 #### 微信
 
-活久见了，2024年3月~~没🐴~~张小:dragon:终于出了原生 linux 微信。
+活久见了，2024年3月~~没🐴~~张小🐉终于出了原生 linux 微信。
 
 ```shell
 yay -S wechat-universal-bwrap
