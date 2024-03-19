@@ -1567,6 +1567,14 @@ yay -S telegram-desktop
 
 ### 编程开发
 
+#### gnome 终端
+
+替换 gnome-terminal。
+
+```shell
+yay -S gnome-console
+```
+
 #### vscode
 
 ```shell
@@ -1590,8 +1598,6 @@ xdg-mime query default inode/directory
 # 输出
 org.gnome.Nautilus.desktop
 ```
-
-以上问题也会引起打开 `nautilus` 卡死。
 
 以上问题也会引起打开 `nautilus` 卡死。
 
@@ -2538,6 +2544,16 @@ yay -S shotcut
 
 ### 文件管理
 
+#### alist
+
+一个支持多种存储，支持网页浏览和 WebDAV 的文件列表程序。
+
+参考：[官方文档](https://alist.nn.ci/zh/)
+
+```shell
+yay -S alist-bin
+```
+
 #### 百度网盘
 
 ```shell
@@ -2547,7 +2563,7 @@ yay -S baidunetdisk-bin
 #### 阿里云盘 - 小白羊
 
 ```shell
-yay -S aliyunpan-liupan1890
+yay -S aliyunpan-odomu-bin
 ```
 
 #### 坚果云
